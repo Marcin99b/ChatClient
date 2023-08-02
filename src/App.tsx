@@ -12,6 +12,9 @@ const configuration = {
 };
 
 export const App = () => {
+  const [baseAddressTemp, setBaseAddressTemp] = useState<string>();
+  const [baseAddress, setBaseAddress] = useState<string>();
+
   const localStream = useRef<MediaStream>();
   const remoteStream = useRef<MediaStream>();
   const [signalrConnection, setSignalrConnection] = useState<HubConnection>();
@@ -26,12 +29,12 @@ export const App = () => {
 
   //create RTC
   useEffect(() => {
-    openMedia();
-    if (peerConnection !== undefined) {
+    if (baseAddress === undefined || baseAddress.length < 12) {
       return;
     }
+    openMedia();
     setPeerConnection(new RTCPeerConnection(configuration));
-  }, [peerConnection]);
+  }, [baseAddress]);
 
   //RTC is created, let's configure RTC and create SignalR
   useEffect(() => {
@@ -55,7 +58,10 @@ export const App = () => {
       console.log(`ICE connection state change: ${peerConnection.iceConnectionState}`);
     });
 
-    const conn = new HubConnectionBuilder().withUrl("https://localhost:8080/chatHub").withAutomaticReconnect().build();
+    const conn = new HubConnectionBuilder()
+      .withUrl(baseAddress! + "/chatHub")
+      .withAutomaticReconnect()
+      .build();
     setSignalrConnection(conn);
   }, [peerConnection, signalrConnection]);
 
@@ -115,14 +121,14 @@ export const App = () => {
         sdp: offer.sdp,
       },
     };
-    const tempRoomId = await createOffer(roomWithOffer.offer);
+    const tempRoomId = await createOffer(baseAddress!, roomWithOffer.offer);
     setRoomId(tempRoomId);
 
     peerConnection.addEventListener("icecandidate", async (event) => {
       if (!event.candidate) {
         return;
       }
-      await addCandidate(tempRoomId!, event.candidate.toJSON());
+      await addCandidate(baseAddress!, tempRoomId!, event.candidate.toJSON());
     });
 
     await peerConnection.setLocalDescription(offer);
@@ -165,14 +171,14 @@ export const App = () => {
       if (!event.candidate) {
         return;
       }
-      await addCandidate(roomId!, event.candidate.toJSON());
+      await addCandidate(baseAddress!, roomId!, event.candidate.toJSON());
     });
 
     peerConnection.addEventListener("track", (event) => {
       event.streams[0].getTracks().forEach((track) => remoteStream.current!.addTrack(track));
     });
 
-    const offer = await getOffer(roomId);
+    const offer = await getOffer(baseAddress!, roomId);
     await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
@@ -182,7 +188,7 @@ export const App = () => {
         sdp: answer.sdp,
       },
     };
-    await addAnswer(roomId, roomWithAnswer.answer);
+    await addAnswer(baseAddress!, roomId, roomWithAnswer.answer);
     signalrConnection.on("CandidateAddedToRoom", async (roomId, candidate) => {
       console.log("CandidateAddedToRoom");
       await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
@@ -194,11 +200,41 @@ export const App = () => {
     <div>
       <audio ref={localAudioRef} muted></audio>
       <audio ref={remoteAudioRef}></audio>
-      <button onClick={createRoom}>Create room</button>
-      <button onClick={joinRoom}>Join room</button>
-      <span>ROOM ID: {joined && roomId !== undefined ? roomId : "NOT JOINED"}</span>
-      <input type="text" placeholder="Room ID" onChange={(x) => setRoomId(x.target.value)}></input>
-      <span>Connection state: {connectionState}</span>
+      {baseAddress === undefined || baseAddress.length < 12 ? (
+        <>
+          Base address is not set
+          <br />
+          <input
+            type="text"
+            onChange={(x) => {
+              setBaseAddressTemp(x.target.value);
+            }}
+          ></input>
+          <button
+            onClick={() => {
+              if (baseAddressTemp === undefined) {
+                return;
+              }
+              setBaseAddress(baseAddressTemp.replace(/\/$/, ""));
+            }}
+          >
+            Set base address
+          </button>
+        </>
+      ) : (
+        <>
+          <button onClick={createRoom}>Create room</button>
+          <button onClick={joinRoom}>Join room</button>
+          <br />
+          <span>ROOM ID: {joined && roomId !== undefined ? roomId : "NOT JOINED"}</span>
+          <br />
+          Set room ID <input type="text" placeholder="Room ID" onChange={(x) => setRoomId(x.target.value)}></input>
+          <br />
+          <span>Connection state: {connectionState}</span>
+          <br />
+          <span>Base address: {baseAddress}</span>
+        </>
+      )}
     </div>
   );
 };
