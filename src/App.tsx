@@ -13,7 +13,7 @@ const configuration = {
 
 export const App = () => {
   const [baseAddressTemp, setBaseAddressTemp] = useState<string>();
-  const [baseAddress, setBaseAddress] = useState<string>();
+  const [baseAddress, setBaseAddress] = useState<string>("https://monkfish-app-lzibp.ondigitalocean.app");
 
   const localStream = useRef<MediaStream>();
   const remoteStream = useRef<MediaStream>();
