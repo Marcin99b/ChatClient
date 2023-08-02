@@ -27,14 +27,32 @@ export const App = () => {
 
   const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
 
-  //create RTC
+  const openMedia = async () => {};
+
   useEffect(() => {
-    if (baseAddress === undefined || baseAddress.length < 12) {
+    if (isMediaOpen) {
       return;
     }
-    openMedia();
+    navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then((stream) => {
+      if (localAudioRef.current === null || remoteAudioRef.current === null) {
+        return;
+      }
+      localStream.current = stream;
+      remoteStream.current = new MediaStream();
+      localAudioRef.current!.srcObject = localStream.current;
+      remoteAudioRef.current!.srcObject = remoteStream.current;
+      setIsMediaOpen(true);
+    });
+  }, [isMediaOpen]);
+
+  //create RTC
+  useEffect(() => {
+    if (baseAddress === undefined || baseAddress.length < 12 || isMediaOpen === false) {
+      return;
+    }
+    //openMedia();
     setPeerConnection(new RTCPeerConnection(configuration));
-  }, [baseAddress]);
+  }, [baseAddress, isMediaOpen]);
 
   //RTC is created, let's configure RTC and create SignalR
   useEffect(() => {
@@ -63,7 +81,7 @@ export const App = () => {
       .withAutomaticReconnect()
       .build();
     setSignalrConnection(conn);
-  }, [peerConnection, signalrConnection]);
+  }, [baseAddress, peerConnection, signalrConnection]);
 
   //SignalR is created, let's configure it
   useEffect(() => {
@@ -84,23 +102,8 @@ export const App = () => {
     });
   }, [signalrConnection, peerConnection]);
 
-  const openMedia = async () => {
-    if (isMediaOpen) {
-      return;
-    }
-    const stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-    if (localAudioRef.current === null || remoteAudioRef.current === null) {
-      return;
-    }
-    localStream.current = stream;
-    remoteStream.current = new MediaStream();
-    localAudioRef.current!.srcObject = localStream.current;
-    remoteAudioRef.current!.srcObject = remoteStream.current;
-    setIsMediaOpen(true);
-  };
-
   const createRoom = async () => {
-    openMedia();
+    await openMedia();
     if (
       peerConnection === undefined ||
       signalrConnection === undefined ||
@@ -151,7 +154,7 @@ export const App = () => {
   };
 
   const joinRoom = async () => {
-    openMedia();
+    await openMedia();
     if (
       peerConnection === undefined ||
       signalrConnection === undefined ||
