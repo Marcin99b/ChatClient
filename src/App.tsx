@@ -1,6 +1,23 @@
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createRoom, joinRoom } from "./WebRtc/RtcActions";
+import {
+  Tag,
+  Box,
+  Button,
+  Text,
+  ChakraProvider,
+  Input,
+  Stack,
+  List,
+  ListItem,
+  Heading,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  ButtonGroup,
+  Highlight,
+} from "@chakra-ui/react";
 
 const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
 
@@ -61,6 +78,7 @@ export const App = () => {
       setIceConnection,
       setRoomId
     );
+    setJoined(true);
   };
 
   const handleJoinRoom = async () => {
@@ -82,6 +100,7 @@ export const App = () => {
       setSignalingState,
       setIceConnection
     );
+    setJoined(true);
   };
 
   const [iceGatheringState, setIceGatheringState] = useState<string>();
@@ -89,28 +108,75 @@ export const App = () => {
   const [signalingState, setSignalingState] = useState<string>();
   const [iceConnection, setIceConnection] = useState<string>();
   const [roomId, setRoomId] = useState<string>();
+  const [joined, setJoined] = useState(false);
 
   return (
-    <div>
+    <ChakraProvider>
       <audio ref={localAudioRef} muted></audio>
       <audio ref={remoteAudioRef}></audio>
-      <span>Base address: {baseAddress}</span>
-      <br />
-      <button onClick={handleCreateRoom}>Create room</button>
-      <button onClick={handleJoinRoom}>Join room</button>
-      <br />
-      <br />
-      Set room ID <input type="text" placeholder="Room ID" onChange={(x) => setRoomId(x.target.value)}></input>
-      <br />
-      <p>States</p>
-      <ul>
-        <li>roomId: {roomId}</li>
-        <li>iceGatheringState: {iceGatheringState}</li>
-        <li>connectionState: {connectionState}</li>
-        <li>signalingState: {signalingState}</li>
-        <li>iceConnection: {iceConnection}</li>
-      </ul>
-      <br />
-    </div>
+      <Box width="800px" p={10}>
+        <Text>Base address: {baseAddress}</Text>
+        {!joined && (
+          <Box marginTop={5}>
+            <ButtonGroup variant="solid" spacing="6">
+              <Button width="200px" onClick={handleCreateRoom} colorScheme="green">
+                Create room
+              </Button>
+              <Button width="200px" onClick={handleJoinRoom} colorScheme="blue">
+                Join room
+              </Button>
+            </ButtonGroup>
+          </Box>
+        )}
+
+        <Box marginTop={5}>
+          {!joined && (
+            <FormControl>
+              <FormLabel>Set room ID</FormLabel>
+              <Input type="text" placeholder="Room ID" onChange={(x) => setRoomId(x.target.value)} />
+            </FormControl>
+          )}
+          {roomId && joined && (
+            <Stack spacing={2}>
+              <Heading as="h4" size="md">
+                Room id
+              </Heading>
+              <Highlight query={roomId ?? ""} styles={{ px: "2", py: "1", rounded: "full", bg: "red.100" }}>
+                {roomId ?? ""}
+              </Highlight>
+            </Stack>
+          )}
+        </Box>
+        {joined && (
+          <Box marginTop={5}>
+            <Heading marginTop={2} marginBottom={2}>
+              States
+            </Heading>
+            <List spacing={3}>
+              <ListItem>
+                <Text>
+                  iceGatheringState: <Tag p={1}>{iceGatheringState}</Tag>
+                </Text>
+              </ListItem>
+              <ListItem>
+                <Text>
+                  connectionState: <Tag p={1}>{connectionState}</Tag>
+                </Text>
+              </ListItem>
+              <ListItem>
+                <Text>
+                  signalingState: <Tag p={1}>{signalingState}</Tag>
+                </Text>
+              </ListItem>
+              <ListItem>
+                <Text>
+                  iceConnection: <Tag p={1}>{iceConnection}</Tag>
+                </Text>
+              </ListItem>
+            </List>
+          </Box>
+        )}
+      </Box>
+    </ChakraProvider>
   );
 };
