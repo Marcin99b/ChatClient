@@ -27,8 +27,6 @@ export const App = () => {
 
   const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
 
-  const openMedia = async () => {};
-
   useEffect(() => {
     if (isMediaOpen) {
       return;
@@ -103,7 +101,6 @@ export const App = () => {
   }, [signalrConnection, peerConnection]);
 
   const createRoom = async () => {
-    await openMedia();
     if (
       peerConnection === undefined ||
       signalrConnection === undefined ||
@@ -154,7 +151,6 @@ export const App = () => {
   };
 
   const joinRoom = async () => {
-    await openMedia();
     if (
       peerConnection === undefined ||
       signalrConnection === undefined ||
