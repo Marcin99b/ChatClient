@@ -54,3 +54,17 @@ export const addAnswer = async (
     },
   });
 };
+
+export const getRoomIds = async (baseAddress: string): Promise<string[]> => {
+  const response = await fetch(baseAddress + `/Rooms/GetRooms`, {
+    method: "POST",
+  });
+  const json = await response.json();
+  return json.ids;
+};
+
+export const deleteRoom = async (baseAddress: string, roomId: string) => {
+  await fetch(baseAddress + `/Rooms/${roomId}/Delete`, {
+    method: "POST",
+  });
+};

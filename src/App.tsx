@@ -7,21 +7,20 @@ import {
   Button,
   Text,
   ChakraProvider,
-  Input,
   Stack,
   List,
   ListItem,
   Heading,
-  FormControl,
-  FormLabel,
   ButtonGroup,
   Highlight,
   extendTheme,
   Textarea,
   Badge,
 } from "@chakra-ui/react";
+import { RoomsList } from "./Components/RoomsList/RoomsList";
+import { getRoomIds } from "./Requests";
 
-const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
+export const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
 
 const theme = extendTheme({
   styles: {
@@ -89,11 +88,12 @@ export const App = () => {
       setIceConnection,
       setRoomId
     );
+    await refreshRooms();
     setJoined(true);
   };
 
-  const handleJoinRoom = async () => {
-    if (baseAddress === undefined || roomId === undefined || roomId.length !== 36 || configuration === undefined) {
+  const handleJoinRoom = async (tempRoomId: string) => {
+    if (baseAddress === undefined || configuration === undefined) {
       return;
     }
     if (!isMediaOpenRef.current) {
@@ -102,7 +102,7 @@ export const App = () => {
     await connectToSignalR();
     await joinRoom(
       configuration,
-      roomId,
+      tempRoomId,
       baseAddress,
       signalrConnectionRef,
       localStreamRef,
@@ -112,6 +112,8 @@ export const App = () => {
       setSignalingState,
       setIceConnection
     );
+    await refreshRooms();
+    setRoomId(tempRoomId);
     setJoined(true);
   };
 
@@ -145,7 +147,10 @@ export const App = () => {
         setConfiguration(configuration);
       })
     );
+
+    getRoomIds(baseAddress).then((ids) => setRoomIds(ids));
   }, [configuration]);
+
   const [configurationString, setConfigurationString] = useState("");
   const [isConfigurationValid, setIsConfigurationValid] = useState(true);
 
@@ -160,6 +165,13 @@ export const App = () => {
       setIsConfigurationValid(false);
     }
   }, [configurationString, configuration]);
+
+  const [roomIds, setRoomIds] = useState<string[]>();
+
+  const refreshRooms = async () => {
+    const ids = await getRoomIds(baseAddress);
+    setRoomIds(ids);
+  };
 
   return (
     <ChakraProvider theme={theme}>
@@ -196,14 +208,6 @@ export const App = () => {
                 >
                   Create room
                 </Button>
-                <Button
-                  width="200px"
-                  onClick={handleJoinRoom}
-                  colorScheme="blue"
-                  isDisabled={isConfigurationValid === false || roomId === undefined || roomId.length !== 36}
-                >
-                  Join room
-                </Button>
               </ButtonGroup>
             ) : (
               <Button colorScheme="red" onClick={() => window.location.reload()}>
@@ -213,12 +217,6 @@ export const App = () => {
           </Box>
 
           <Box marginTop={5}>
-            {!joined && (
-              <FormControl>
-                <FormLabel>Set room ID</FormLabel>
-                <Input type="text" placeholder="Room ID" onChange={(x) => setRoomId(x.target.value)} />
-              </FormControl>
-            )}
             {roomId && joined && (
               <Stack spacing={2}>
                 <Heading as="h4" size="md">
@@ -260,6 +258,9 @@ export const App = () => {
                 </ListItem>
               </List>
             </Box>
+          )}
+          {roomIds !== undefined && (
+            <RoomsList baseAddress={baseAddress} ids={roomIds} refreshRooms={refreshRooms} joinRoom={handleJoinRoom} />
           )}
         </Box>
       </Box>
