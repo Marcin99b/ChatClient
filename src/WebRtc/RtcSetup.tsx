@@ -1,5 +1,5 @@
 import { HubConnection } from "@microsoft/signalr";
-import { addCandidate } from "../Requests";
+import { addOfferCandidate, addAnswerCandidate } from "../Requests";
 
 export const setupStateHandling = (
   peerConnection: RTCPeerConnection,
@@ -29,14 +29,20 @@ export const setupStateHandling = (
   });
 };
 
-export const setupAddIceCandidate = (baseAddress: string, roomId: string, peerConnection: RTCPeerConnection) => {
+export const setupAddIceCandidate = (
+  baseAddress: string,
+  roomId: string,
+  peerConnection: RTCPeerConnection,
+  type: "offer" | "answer"
+) => {
   peerConnection.addEventListener("icecandidate", async (event) => {
     if (!event.candidate) {
       return;
     }
     console.log("Sending my candidate to server");
-    console.log({ roomId, candidate: event.candidate.toJSON() });
-    await addCandidate(baseAddress, roomId, event.candidate.toJSON());
+    console.log({ roomId, candidate: event.candidate.toJSON(), type });
+    if (type === "offer") await addOfferCandidate(baseAddress, roomId, event.candidate.toJSON());
+    else await addAnswerCandidate(baseAddress, roomId, event.candidate.toJSON());
   });
 };
 

@@ -13,12 +13,26 @@ export const createOffer = async (
   return json.roomId;
 };
 
-export const addCandidate = async (
+export const addOfferCandidate = async (
   baseAddress: string,
   roomId: string,
   candidate: RTCIceCandidateInit
 ): Promise<void> => {
-  await fetch(baseAddress + `/Rooms/${roomId}/AddCandidate`, {
+  await fetch(baseAddress + `/Rooms/${roomId}/AddOfferCandidate`, {
+    method: "POST",
+    body: JSON.stringify({ candidate: candidate }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const addAnswerCandidate = async (
+  baseAddress: string,
+  roomId: string,
+  candidate: RTCIceCandidateInit
+): Promise<void> => {
+  await fetch(baseAddress + `/Rooms/${roomId}/AddAnswerCandidate`, {
     method: "POST",
     body: JSON.stringify({ candidate: candidate }),
     headers: {
@@ -75,4 +89,12 @@ export const getIceServers = async (baseAddress: string) => {
   });
   const json = await response.json();
   return json.iceServers;
+};
+
+export const getRoomById = async (baseAddress: string, roomId: string) => {
+  const response = await fetch(baseAddress + `/Rooms/GetRoom/${roomId}`, {
+    method: "POST",
+  });
+  const json = await response.json();
+  return json;
 };
