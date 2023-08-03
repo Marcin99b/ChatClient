@@ -117,10 +117,10 @@ export const App = () => {
     setJoined(true);
   };
 
-  const [iceGatheringState, setIceGatheringState] = useState<string>();
-  const [connectionState, setConnectionState] = useState<string>();
-  const [signalingState, setSignalingState] = useState<string>();
-  const [iceConnection, setIceConnection] = useState<string>();
+  const [iceGatheringState, setIceGatheringState] = useState<RTCIceGatheringState>();
+  const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>();
+  const [signalingState, setSignalingState] = useState<RTCSignalingState>();
+  const [iceConnection, setIceConnection] = useState<RTCIceConnectionState>();
   const [roomId, setRoomId] = useState<string>();
   const [joined, setJoined] = useState(false);
 
@@ -234,17 +234,51 @@ export const App = () => {
               <List spacing={3}>
                 <ListItem>
                   <Text>
-                    iceGatheringState: <Tag p={1}>{iceGatheringState}</Tag>
+                    iceGatheringState:{" "}
+                    <Tag
+                      p={1}
+                      colorScheme={
+                        iceGatheringState === "complete"
+                          ? "green"
+                          : iceGatheringState === "gathering"
+                          ? "yellow"
+                          : undefined
+                      }
+                    >
+                      {iceGatheringState}
+                    </Tag>
                   </Text>
                 </ListItem>
                 <ListItem>
                   <Text>
-                    connectionState: <Tag p={1}>{connectionState}</Tag>
+                    connectionState:{" "}
+                    <Tag
+                      p={1}
+                      colorScheme={
+                        connectionState === "connected"
+                          ? "green"
+                          : connectionState === "connecting"
+                          ? "yellow"
+                          : connectionState === "new"
+                          ? undefined
+                          : "red"
+                      }
+                    >
+                      {connectionState}
+                    </Tag>
                   </Text>
                 </ListItem>
                 <ListItem>
                   <Text>
-                    signalingState: <Tag p={1}>{signalingState}</Tag>
+                    signalingState:{" "}
+                    <Tag
+                      p={1}
+                      colorScheme={
+                        signalingState === "stable" ? "green" : signalingState === "closed" ? undefined : "yellow"
+                      }
+                    >
+                      {signalingState}
+                    </Tag>
                   </Text>
                 </ListItem>
                 <ListItem>

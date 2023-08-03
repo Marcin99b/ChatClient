@@ -13,10 +13,10 @@ export const createRoom = async (
   signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>,
   localStreamRef: React.MutableRefObject<MediaStream | undefined>,
   remoteStreamRef: React.MutableRefObject<MediaStream | undefined>,
-  displayIceGatheringState: (state: string) => void,
-  displayConnectionState: (state: string) => void,
-  displaySignalingState: (state: string) => void,
-  displayIceConnection: (state: string) => void,
+  displayIceGatheringState: (state: RTCIceGatheringState) => void,
+  displayConnectionState: (state: RTCPeerConnectionState) => void,
+  displaySignalingState: (state: RTCSignalingState) => void,
+  displayIceConnection: (state: RTCIceConnectionState) => void,
   displayRoomId: (id: string) => void
 ) => {
   console.log("Creating connection with config", { configuration });
@@ -61,10 +61,10 @@ export const joinRoom = async (
   signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>,
   localStreamRef: React.MutableRefObject<MediaStream | undefined>,
   remoteStreamRef: React.MutableRefObject<MediaStream | undefined>,
-  displayIceGatheringState: (state: string) => void,
-  displayConnectionState: (state: string) => void,
-  displaySignalingState: (state: string) => void,
-  displayIceConnection: (state: string) => void
+  displayIceGatheringState: (state: RTCIceGatheringState) => void,
+  displayConnectionState: (state: RTCPeerConnectionState) => void,
+  displaySignalingState: (state: RTCSignalingState) => void,
+  displayIceConnection: (state: RTCIceConnectionState) => void
 ) => {
   console.log("Creating connection with config", { configuration });
   const peerConnection = new RTCPeerConnection(configuration);

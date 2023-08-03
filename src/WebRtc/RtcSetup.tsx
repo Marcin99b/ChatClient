@@ -3,10 +3,10 @@ import { addOfferCandidate, addAnswerCandidate } from "../Requests";
 
 export const setupStateHandling = (
   peerConnection: RTCPeerConnection,
-  displayIceGatheringState: (state: string) => void,
-  displayConnectionState: (state: string) => void,
-  displaySignalingState: (state: string) => void,
-  displayIceConnection: (state: string) => void
+  displayIceGatheringState: (state: RTCIceGatheringState) => void,
+  displayConnectionState: (state: RTCPeerConnectionState) => void,
+  displaySignalingState: (state: RTCSignalingState) => void,
+  displayIceConnection: (state: RTCIceConnectionState) => void
 ) => {
   peerConnection.addEventListener("icegatheringstatechange", () => {
     console.log(peerConnection.iceGatheringState);
