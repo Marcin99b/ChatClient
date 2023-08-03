@@ -16,9 +16,20 @@ import {
   FormLabel,
   ButtonGroup,
   Highlight,
+  extendTheme,
 } from "@chakra-ui/react";
 
 const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
+
+const theme = extendTheme({
+  styles: {
+    global: {
+      "html, body": {
+        bg: "gray.50",
+      },
+    },
+  },
+});
 
 export const App = () => {
   const signalrConnectionRef = useRef<HubConnection>();
@@ -81,7 +92,7 @@ export const App = () => {
   };
 
   const handleJoinRoom = async () => {
-    if (baseAddress === undefined || roomId === undefined || roomId.length < 5) {
+    if (baseAddress === undefined || roomId === undefined || roomId.length !== 36) {
       return;
     }
     if (!isMediaOpenRef.current) {
@@ -110,71 +121,88 @@ export const App = () => {
   const [joined, setJoined] = useState(false);
 
   return (
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
       <audio ref={localAudioRef} muted></audio>
       <audio ref={remoteAudioRef}></audio>
-      <Box width="800px" p={10}>
-        <Text>Base address: {baseAddress}</Text>
-        {!joined && (
-          <Box marginTop={5}>
-            <ButtonGroup variant="solid" spacing="6">
-              <Button width="200px" onClick={handleCreateRoom} colorScheme="green">
-                Create room
-              </Button>
-              <Button width="200px" onClick={handleJoinRoom} colorScheme="blue">
-                Join room
-              </Button>
-            </ButtonGroup>
-          </Box>
-        )}
+      <Box display="flex" justifyContent="center">
+        <Box display="inline-block" p={10}>
+          <Heading marginBottom={2} as="h5" size="sm">
+            Base address:
+          </Heading>
+          <Tag>{baseAddress}</Tag>
 
-        <Box marginTop={5}>
-          {!joined && (
-            <FormControl>
-              <FormLabel>Set room ID</FormLabel>
-              <Input type="text" placeholder="Room ID" onChange={(x) => setRoomId(x.target.value)} />
-            </FormControl>
-          )}
-          {roomId && joined && (
-            <Stack spacing={2}>
-              <Heading as="h4" size="md">
-                Room id
+          <Box marginTop={5}>
+            {!joined ? (
+              <ButtonGroup variant="solid" spacing="6">
+                <Button width="200px" onClick={handleCreateRoom} colorScheme="green">
+                  Create room
+                </Button>
+                <Button
+                  width="200px"
+                  onClick={handleJoinRoom}
+                  colorScheme="blue"
+                  isDisabled={roomId === undefined || roomId.length !== 36}
+                >
+                  Join room
+                </Button>
+              </ButtonGroup>
+            ) : (
+              <Button colorScheme="red" onClick={() => window.location.reload()}>
+                Leave
+              </Button>
+            )}
+          </Box>
+
+          <Box marginTop={5}>
+            {!joined && (
+              <FormControl>
+                <FormLabel>Set room ID</FormLabel>
+                <Input type="text" placeholder="Room ID" onChange={(x) => setRoomId(x.target.value)} />
+              </FormControl>
+            )}
+            {roomId && joined && (
+              <Stack spacing={2}>
+                <Heading as="h4" size="md">
+                  Room id
+                </Heading>
+                <Box>
+                  <Highlight query={roomId ?? ""} styles={{ px: "2", py: "1", rounded: "full", bg: "red.100" }}>
+                    {roomId ?? ""}
+                  </Highlight>
+                </Box>
+              </Stack>
+            )}
+          </Box>
+          {joined && (
+            <Box marginTop={5}>
+              <Heading as="h4" size="md" marginTop={2} marginBottom={2}>
+                States
               </Heading>
-              <Highlight query={roomId ?? ""} styles={{ px: "2", py: "1", rounded: "full", bg: "red.100" }}>
-                {roomId ?? ""}
-              </Highlight>
-            </Stack>
+              <List spacing={3}>
+                <ListItem>
+                  <Text>
+                    iceGatheringState: <Tag p={1}>{iceGatheringState}</Tag>
+                  </Text>
+                </ListItem>
+                <ListItem>
+                  <Text>
+                    connectionState: <Tag p={1}>{connectionState}</Tag>
+                  </Text>
+                </ListItem>
+                <ListItem>
+                  <Text>
+                    signalingState: <Tag p={1}>{signalingState}</Tag>
+                  </Text>
+                </ListItem>
+                <ListItem>
+                  <Text>
+                    iceConnection: <Tag p={1}>{iceConnection}</Tag>
+                  </Text>
+                </ListItem>
+              </List>
+            </Box>
           )}
         </Box>
-        {joined && (
-          <Box marginTop={5}>
-            <Heading marginTop={2} marginBottom={2}>
-              States
-            </Heading>
-            <List spacing={3}>
-              <ListItem>
-                <Text>
-                  iceGatheringState: <Tag p={1}>{iceGatheringState}</Tag>
-                </Text>
-              </ListItem>
-              <ListItem>
-                <Text>
-                  connectionState: <Tag p={1}>{connectionState}</Tag>
-                </Text>
-              </ListItem>
-              <ListItem>
-                <Text>
-                  signalingState: <Tag p={1}>{signalingState}</Tag>
-                </Text>
-              </ListItem>
-              <ListItem>
-                <Text>
-                  iceConnection: <Tag p={1}>{iceConnection}</Tag>
-                </Text>
-              </ListItem>
-            </List>
-          </Box>
-        )}
       </Box>
     </ChakraProvider>
   );
