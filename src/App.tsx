@@ -18,6 +18,7 @@ import {
   Highlight,
   extendTheme,
   Textarea,
+  Badge,
 } from "@chakra-ui/react";
 
 const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
@@ -159,6 +160,9 @@ export const App = () => {
             resize="vertical"
             value={configurationString}
           />
+          <Badge colorScheme={isConfigurationValid ? "green" : "red"}>
+            Configuration is {isConfigurationValid ? "valid" : "invalid"}
+          </Badge>
           <Heading marginTop={2} marginBottom={2} as="h5" size="sm">
             Base address:
           </Heading>
@@ -167,14 +171,19 @@ export const App = () => {
           <Box marginTop={5}>
             {!joined ? (
               <ButtonGroup variant="solid" spacing="6">
-                <Button width="200px" onClick={handleCreateRoom} colorScheme="green">
+                <Button
+                  width="200px"
+                  onClick={handleCreateRoom}
+                  colorScheme="green"
+                  isDisabled={isConfigurationValid === false}
+                >
                   Create room
                 </Button>
                 <Button
                   width="200px"
                   onClick={handleJoinRoom}
                   colorScheme="blue"
-                  isDisabled={roomId === undefined || roomId.length !== 36}
+                  isDisabled={isConfigurationValid === false || roomId === undefined || roomId.length !== 36}
                 >
                   Join room
                 </Button>
