@@ -7,16 +7,8 @@ import {
   setupCandidateAddedToRoom,
 } from "./RtcSetup";
 
-const configuration: RTCConfiguration = {
-  iceServers: [
-    {
-      urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"],
-    },
-  ],
-  iceCandidatePoolSize: 10,
-};
-
 export const createRoom = async (
+  configuration: RTCConfiguration,
   baseAddress: string,
   signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>,
   localStreamRef: React.MutableRefObject<MediaStream | undefined>,
@@ -27,6 +19,7 @@ export const createRoom = async (
   displayIceConnection: (state: string) => void,
   displayRoomId: (id: string) => void
 ) => {
+  console.log("Creating connection with config", { configuration });
   const peerConnection = new RTCPeerConnection(configuration);
 
   setupStateHandling(
@@ -62,6 +55,7 @@ export const createRoom = async (
 };
 
 export const joinRoom = async (
+  configuration: RTCConfiguration,
   roomId: string,
   baseAddress: string,
   signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>,
@@ -72,6 +66,7 @@ export const joinRoom = async (
   displaySignalingState: (state: string) => void,
   displayIceConnection: (state: string) => void
 ) => {
+  console.log("Creating connection with config", { configuration });
   const peerConnection = new RTCPeerConnection(configuration);
 
   setupStateHandling(

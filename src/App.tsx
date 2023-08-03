@@ -17,6 +17,7 @@ import {
   ButtonGroup,
   Highlight,
   extendTheme,
+  Textarea,
 } from "@chakra-ui/react";
 
 const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
@@ -78,6 +79,7 @@ export const App = () => {
     }
     await connectToSignalR();
     await createRoom(
+      configuration,
       baseAddress,
       signalrConnectionRef,
       localStreamRef,
@@ -100,6 +102,7 @@ export const App = () => {
     }
     await connectToSignalR();
     await joinRoom(
+      configuration,
       roomId,
       baseAddress,
       signalrConnectionRef,
@@ -120,6 +123,26 @@ export const App = () => {
   const [roomId, setRoomId] = useState<string>();
   const [joined, setJoined] = useState(false);
 
+  const [configuration, setConfiguration] = useState<RTCConfiguration>({
+    iceServers: [
+      {
+        urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"],
+      },
+    ],
+    iceCandidatePoolSize: 10,
+  });
+  const [configurationString, setConfigurationString] = useState(JSON.stringify(configuration, null, 3));
+  const [isConfigurationValid, setIsConfigurationValid] = useState(true);
+
+  useEffect(() => {
+    try {
+      setConfiguration(JSON.parse(configurationString));
+      setIsConfigurationValid(true);
+    } catch {
+      setIsConfigurationValid(false);
+    }
+  }, [configurationString]);
+
   return (
     <ChakraProvider theme={theme}>
       <audio ref={localAudioRef} muted></audio>
@@ -127,6 +150,16 @@ export const App = () => {
       <Box display="flex" justifyContent="center">
         <Box display="inline-block" p={10}>
           <Heading marginBottom={2} as="h5" size="sm">
+            Configuration
+          </Heading>
+          <Textarea
+            isInvalid={!isConfigurationValid}
+            onChange={(x) => setConfigurationString(x.target.value)}
+            height="300px"
+            resize="vertical"
+            value={configurationString}
+          />
+          <Heading marginTop={2} marginBottom={2} as="h5" size="sm">
             Base address:
           </Heading>
           <Tag>{baseAddress}</Tag>
