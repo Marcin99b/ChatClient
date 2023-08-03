@@ -69,10 +69,8 @@ export const App = () => {
     signalrConnectionRef.current = conn;
   };
 
-  useEffect(() => {}, []);
-
   const handleCreateRoom = async () => {
-    if (baseAddress === undefined) {
+    if (baseAddress === undefined || configuration === undefined) {
       return;
     }
     if (!isMediaOpenRef.current) {
@@ -95,7 +93,7 @@ export const App = () => {
   };
 
   const handleJoinRoom = async () => {
-    if (baseAddress === undefined || roomId === undefined || roomId.length !== 36) {
+    if (baseAddress === undefined || roomId === undefined || roomId.length !== 36 || configuration === undefined) {
       return;
     }
     if (!isMediaOpenRef.current) {
@@ -124,25 +122,44 @@ export const App = () => {
   const [roomId, setRoomId] = useState<string>();
   const [joined, setJoined] = useState(false);
 
-  const [configuration, setConfiguration] = useState<RTCConfiguration>({
-    iceServers: [
-      {
-        urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"],
-      },
-    ],
-    iceCandidatePoolSize: 10,
-  });
-  const [configurationString, setConfigurationString] = useState(JSON.stringify(configuration, null, 3));
+  const mountRef = useRef(false);
+  const [configuration, setConfiguration] = useState<RTCConfiguration>();
+  useEffect(() => {
+    if (mountRef.current === true) {
+      return;
+    }
+    mountRef.current = true;
+    if (configuration !== undefined) {
+      return;
+    }
+    fetch(
+      "https://voice-chat-test.metered.live/api/v1/turn/credentials?apiKey=c5e1a544cdb4c9fe23628a5bad0b13389c50"
+    ).then((response) =>
+      response.json().then((config) => {
+        const configuration: RTCConfiguration = {
+          iceServers: config,
+          iceCandidatePoolSize: 10,
+        };
+
+        setConfigurationString(JSON.stringify(configuration, null, 3));
+        setConfiguration(configuration);
+      })
+    );
+  }, [configuration]);
+  const [configurationString, setConfigurationString] = useState("");
   const [isConfigurationValid, setIsConfigurationValid] = useState(true);
 
   useEffect(() => {
+    if (configuration === undefined) {
+      return;
+    }
     try {
       setConfiguration(JSON.parse(configurationString));
       setIsConfigurationValid(true);
     } catch {
       setIsConfigurationValid(false);
     }
-  }, [configurationString]);
+  }, [configurationString, configuration]);
 
   return (
     <ChakraProvider theme={theme}>
