@@ -18,7 +18,7 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { RoomsList } from "./Components/RoomsList/RoomsList";
-import { getRoomIds } from "./Requests";
+import { getIceServers, getRoomIds } from "./Requests";
 
 export const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
 
@@ -134,19 +134,15 @@ export const App = () => {
     if (configuration !== undefined) {
       return;
     }
-    fetch(
-      "https://voice-chat-test.metered.live/api/v1/turn/credentials?apiKey=c5e1a544cdb4c9fe23628a5bad0b13389c50"
-    ).then((response) =>
-      response.json().then((config) => {
-        const configuration: RTCConfiguration = {
-          iceServers: config,
-          iceCandidatePoolSize: 10,
-        };
 
-        setConfigurationString(JSON.stringify(configuration, null, 3));
-        setConfiguration(configuration);
-      })
-    );
+    getIceServers(baseAddress).then((config) => {
+      const configuration: RTCConfiguration = {
+        iceServers: config,
+      };
+
+      setConfigurationString(JSON.stringify(configuration, null, 3));
+      setConfiguration(configuration);
+    });
 
     getRoomIds(baseAddress).then((ids) => setRoomIds(ids));
   }, [configuration]);

@@ -68,3 +68,11 @@ export const deleteRoom = async (baseAddress: string, roomId: string) => {
     method: "POST",
   });
 };
+
+export const getIceServers = async (baseAddress: string) => {
+  const response = await fetch(baseAddress + `/WebRtc/GetIceServers`, {
+    method: "POST",
+  });
+  const json = await response.json();
+  return json.iceServers;
+};
