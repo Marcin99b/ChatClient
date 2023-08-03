@@ -34,6 +34,8 @@ export const setupAddIceCandidate = (baseAddress: string, roomId: string, peerCo
     if (!event.candidate) {
       return;
     }
+    console.log("Sending my candidate to server");
+    console.log({ roomId, candidate: event.candidate.toJSON() });
     await addCandidate(baseAddress, roomId, event.candidate.toJSON());
   });
 };
@@ -43,8 +45,9 @@ export const setupAnswerAddedToRoom = (
   signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>
 ) => {
   signalrConnectionRef.current!.on("AnswerAddedToRoom", async (roomId, answer) => {
-    console.log("AnswerAddedToRoom");
+    console.log("Answer received. Setting remote description");
     const rtcSessionDescription = new RTCSessionDescription(answer);
+    console.log({ rtcSessionDescription });
     await peerConnection.setRemoteDescription(rtcSessionDescription);
   });
 };
@@ -54,7 +57,9 @@ export const setupCandidateAddedToRoom = (
   signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>
 ) => {
   signalrConnectionRef.current!.on("CandidateAddedToRoom", async (roomId, candidate) => {
-    console.log("CandidateAddedToRoom");
-    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    console.log("Candidate received. Adding remote candidate");
+    const c = new RTCIceCandidate(candidate);
+    console.log({ candidate: c });
+    await peerConnection.addIceCandidate(c);
   });
 };
