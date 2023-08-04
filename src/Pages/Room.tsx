@@ -6,18 +6,20 @@ import { createRoom, joinRoom } from "../WebRtc/RtcActions";
 import { useMedia } from "../Hooks/useMedia";
 import { useSignalR } from "../Hooks/useSignalR";
 import { useWebRtcConfiguration } from "../Hooks/useWebRtcConfiguration";
+import { useApi } from "../Hooks/useApi";
 
 const Room = () => {
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>();
 
   const mountRef = useRef(false);
   const [roomIds, setRoomIds] = useState<string[]>();
+  //const { getRooms } = useApi();
   useEffect(() => {
     if (mountRef.current === true) {
       return;
     }
     mountRef.current = true;
-    getRoomIds(baseAddress).then((ids) => setRoomIds(ids));
+    //getRooms().then((x) => setRoomIds(x.ids ?? []));
   }, []);
 
   const refreshRooms = async () => {

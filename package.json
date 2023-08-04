@@ -47,6 +47,8 @@
     ]
   },
   "devDependencies": {
-    "netlify-cli": "^15.10.0"
+    "netlify-cli": "^15.10.0",
+    "openapi-typescript": "^6.4.0",
+    "openapi-typescript-codegen": "^0.25.0"
   }
 }

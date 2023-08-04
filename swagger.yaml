@@ -1,0 +1,288 @@
+openapi: 3.0.1
+info:
+  title: ChatServer.WebApi
+  version: '1.0'
+paths:
+  /Rooms/CreateOffer:
+    post:
+      tags:
+        - ChatServer.WebApi
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOfferRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOfferResponse'
+  '/Rooms/{id}/AddOfferCandidate':
+    post:
+      tags:
+        - ChatServer.WebApi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCandidateRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+  '/Rooms/{id}/AddAnswerCandidate':
+    post:
+      tags:
+        - ChatServer.WebApi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCandidateRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+  '/Rooms/{id}/AddAnswer':
+    post:
+      tags:
+        - ChatServer.WebApi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddAnswerRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+  '/Rooms/{id}/GetOffer':
+    post:
+      tags:
+        - ChatServer.WebApi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOfferResponse'
+  /Rooms/GetRooms:
+    post:
+      tags:
+        - ChatServer.WebApi
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRoomsResponse'
+  '/Rooms/{id}/Delete':
+    post:
+      tags:
+        - ChatServer.WebApi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+  /WebRtc/GetIceServers:
+    post:
+      tags:
+        - ChatServer.WebApi
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetIceServersResponse'
+  '/Rooms/GetRoom/{id}':
+    post:
+      tags:
+        - ChatServer.WebApi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+components:
+  schemas:
+    AddAnswerRequest:
+      type: object
+      properties:
+        answer:
+          $ref: '#/components/schemas/SdpData'
+      additionalProperties: false
+    AddCandidateRequest:
+      type: object
+      properties:
+        candidate:
+          $ref: '#/components/schemas/CandidateItem'
+      additionalProperties: false
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        data:
+          $ref: '#/components/schemas/CandidateItem'
+      additionalProperties: false
+    CandidateItem:
+      type: object
+      properties:
+        candidate:
+          type: string
+          nullable: true
+        sdpMLineIndex:
+          type: integer
+          format: int32
+        sdpMid:
+          type: string
+          nullable: true
+        usernameFragment:
+          type: string
+          nullable: true
+      additionalProperties: false
+    CreateOfferRequest:
+      type: object
+      properties:
+        offer:
+          $ref: '#/components/schemas/SdpData'
+      additionalProperties: false
+    CreateOfferResponse:
+      type: object
+      properties:
+        roomId:
+          type: string
+          format: uuid
+      additionalProperties: false
+    GetIceServersResponse:
+      type: object
+      properties:
+        iceServers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ice_Servers'
+          nullable: true
+      additionalProperties: false
+    GetOfferResponse:
+      type: object
+      properties:
+        offer:
+          $ref: '#/components/schemas/SdpData'
+      additionalProperties: false
+    GetRoomsResponse:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+      additionalProperties: false
+    Ice_Servers:
+      type: object
+      properties:
+        url:
+          type: string
+          nullable: true
+        urls:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        credential:
+          type: string
+          nullable: true
+      additionalProperties: false
+    Room:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        offer:
+          $ref: '#/components/schemas/SdpData'
+        offerCandidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+          nullable: true
+          readOnly: true
+        answerCandidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+          nullable: true
+          readOnly: true
+        answer:
+          $ref: '#/components/schemas/SdpData'
+      additionalProperties: false
+    SdpData:
+      type: object
+      properties:
+        sdp:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+      additionalProperties: false
