@@ -1,3 +1,5 @@
+export const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
+
 export const createOffer = async (
   baseAddress: string,
   offer: { type: RTCSdpType; sdp: string | undefined }

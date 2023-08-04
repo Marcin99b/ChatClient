@@ -10,25 +10,12 @@ import {
 export const createRoom = async (
   configuration: RTCConfiguration,
   baseAddress: string,
-  signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>,
+  signalrConnection: HubConnection,
   localStreamRef: React.MutableRefObject<MediaStream | undefined>,
   remoteStreamRef: React.MutableRefObject<MediaStream | undefined>,
-  displayIceGatheringState: (state: RTCIceGatheringState) => void,
-  displayConnectionState: (state: RTCPeerConnectionState) => void,
-  displaySignalingState: (state: RTCSignalingState) => void,
-  displayIceConnection: (state: RTCIceConnectionState) => void,
-  displayRoomId: (id: string) => void
+  displayConnectionState: (state: RTCPeerConnectionState) => void
 ) => {
-  console.log("Creating connection with config", { configuration });
-  const peerConnection = new RTCPeerConnection(configuration);
-
-  setupStateHandling(
-    peerConnection,
-    displayIceGatheringState,
-    displayConnectionState,
-    displaySignalingState,
-    displayIceConnection
-  );
+  const peerConnection = createConnection(configuration, displayConnectionState);
 
   localStreamRef.current!.getTracks().forEach((track) => {
     peerConnection.addTrack(track, localStreamRef.current!);
@@ -48,34 +35,20 @@ export const createRoom = async (
     event.streams[0].getTracks().forEach((track) => remoteStreamRef.current!.addTrack(track));
   });
 
-  setupAnswerAddedToRoom(peerConnection, signalrConnectionRef);
-  setupCandidateAddedToRoom(peerConnection, signalrConnectionRef);
-
-  displayRoomId(roomId);
+  setupAnswerAddedToRoom(peerConnection, signalrConnection);
+  setupCandidateAddedToRoom(peerConnection, signalrConnection);
 };
 
 export const joinRoom = async (
   configuration: RTCConfiguration,
   roomId: string,
   baseAddress: string,
-  signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>,
+  signalrConnection: HubConnection,
   localStreamRef: React.MutableRefObject<MediaStream | undefined>,
   remoteStreamRef: React.MutableRefObject<MediaStream | undefined>,
-  displayIceGatheringState: (state: RTCIceGatheringState) => void,
-  displayConnectionState: (state: RTCPeerConnectionState) => void,
-  displaySignalingState: (state: RTCSignalingState) => void,
-  displayIceConnection: (state: RTCIceConnectionState) => void
+  displayConnectionState: (state: RTCPeerConnectionState) => void
 ) => {
-  console.log("Creating connection with config", { configuration });
-  const peerConnection = new RTCPeerConnection(configuration);
-
-  setupStateHandling(
-    peerConnection,
-    displayIceGatheringState,
-    displayConnectionState,
-    displaySignalingState,
-    displayIceConnection
-  );
+  const peerConnection = createConnection(configuration, displayConnectionState);
 
   localStreamRef.current!.getTracks().forEach((track) => {
     peerConnection.addTrack(track, localStreamRef.current!);
@@ -104,5 +77,16 @@ export const joinRoom = async (
     peerConnection.addIceCandidate(c);
   }
 
-  setupCandidateAddedToRoom(peerConnection, signalrConnectionRef);
+  setupCandidateAddedToRoom(peerConnection, signalrConnection);
+};
+
+const createConnection = (
+  configuration: RTCConfiguration,
+  displayConnectionState: (state: RTCPeerConnectionState) => void
+): RTCPeerConnection => {
+  const peerConnection = new RTCPeerConnection(configuration);
+
+  setupStateHandling(peerConnection, displayConnectionState);
+
+  return peerConnection;
 };

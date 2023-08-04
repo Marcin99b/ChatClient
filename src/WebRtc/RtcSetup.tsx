@@ -3,29 +3,23 @@ import { addOfferCandidate, addAnswerCandidate } from "../Requests";
 
 export const setupStateHandling = (
   peerConnection: RTCPeerConnection,
-  displayIceGatheringState: (state: RTCIceGatheringState) => void,
-  displayConnectionState: (state: RTCPeerConnectionState) => void,
-  displaySignalingState: (state: RTCSignalingState) => void,
-  displayIceConnection: (state: RTCIceConnectionState) => void
+  displayConnectionState: (state: RTCPeerConnectionState) => void
 ) => {
   peerConnection.addEventListener("icegatheringstatechange", () => {
-    console.log(peerConnection.iceGatheringState);
-    displayIceGatheringState(peerConnection.iceGatheringState);
+    console.log("icegatheringstatechange" + peerConnection.iceGatheringState);
   });
 
   peerConnection.addEventListener("connectionstatechange", () => {
-    console.log(peerConnection.connectionState);
+    console.log("connectionstatechange" + peerConnection.connectionState);
     displayConnectionState(peerConnection.connectionState);
   });
 
   peerConnection.addEventListener("signalingstatechange", () => {
-    console.log(peerConnection.signalingState);
-    displaySignalingState(peerConnection.signalingState);
+    console.log("signalingstatechange" + peerConnection.signalingState);
   });
 
   peerConnection.addEventListener("iceconnectionstatechange ", () => {
-    console.log(peerConnection.iceConnectionState);
-    displayIceConnection(peerConnection.iceConnectionState);
+    console.log("iceconnectionstatechange" + peerConnection.iceConnectionState);
   });
 };
 
@@ -46,11 +40,8 @@ export const setupAddIceCandidate = (
   });
 };
 
-export const setupAnswerAddedToRoom = (
-  peerConnection: RTCPeerConnection,
-  signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>
-) => {
-  signalrConnectionRef.current!.on("AnswerAddedToRoom", async (roomId, answer) => {
+export const setupAnswerAddedToRoom = (peerConnection: RTCPeerConnection, signalrConnection: HubConnection) => {
+  signalrConnection.on("AnswerAddedToRoom", async (roomId, answer) => {
     console.log("Answer received. Setting remote description");
     const rtcSessionDescription = new RTCSessionDescription(answer);
     console.log({ rtcSessionDescription });
@@ -58,11 +49,8 @@ export const setupAnswerAddedToRoom = (
   });
 };
 
-export const setupCandidateAddedToRoom = (
-  peerConnection: RTCPeerConnection,
-  signalrConnectionRef: React.MutableRefObject<HubConnection | undefined>
-) => {
-  signalrConnectionRef.current!.on("CandidateAddedToRoom", async (roomId, candidate) => {
+export const setupCandidateAddedToRoom = (peerConnection: RTCPeerConnection, signalrConnection: HubConnection) => {
+  signalrConnection.on("CandidateAddedToRoom", async (roomId, candidate) => {
     console.log("Candidate received. Adding remote candidate");
     const c = new RTCIceCandidate(candidate);
     console.log({ candidate: c });
