@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Card, CardBody, CardFooter, Divider, Heading, Stack, Text } from "@chakra-ui/react";
+import { Button, ButtonGroup, Card, CardBody, CardFooter, Divider, Heading, Stack, Text } from "@chakra-ui/react";
 import { FC, useEffect, useRef, useState } from "react";
 import { useUsersApi } from "../Hooks/useApi";
 import { User } from "../Models/ApiModels";
