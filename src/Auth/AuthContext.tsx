@@ -6,12 +6,13 @@ export interface AuthContextType {
   user: User | undefined;
   isLoggedIn: boolean;
   refresh: (callback: VoidFunction) => void;
+  isChecked: React.MutableRefObject<boolean>;
 }
 export const AuthContext = createContext<AuthContextType>(null!);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isMount = useRef(false);
-
+  const isChecked = useRef(false);
   const [user, setUser] = useState<User>();
   const isLoggedIn = user !== undefined;
 
@@ -23,19 +24,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     isMount.current = true;
     getCurrentUser({})
-      .then((x) => setUser(x.user))
-      .catch(() => setUser(undefined));
+      .then((x) => {
+        setUser(x.user);
+        isChecked.current = true;
+      })
+      .catch(() => {
+        setUser(undefined);
+        isChecked.current = true;
+      });
   }, [getCurrentUser, user]);
 
   const refresh = (callback: VoidFunction) => {
     getCurrentUser({})
-      .then((x) => setUser(x.user))
-      .catch(() => setUser(undefined));
+      .then((x) => {
+        setUser(x.user);
+        isChecked.current = true;
+      })
+      .catch(() => {
+        setUser(undefined);
+        isChecked.current = true;
+      });
 
     callback();
   };
 
-  const value = { user: user, isLoggedIn, refresh };
+  const value = { user: user, isLoggedIn, isChecked, refresh };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

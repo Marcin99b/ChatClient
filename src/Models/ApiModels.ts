@@ -66,7 +66,7 @@ export interface GetUserResponse {
 export type GetUsersListRequest = object;
 
 export interface GetUsersListResponse {
-  users?: User[] | null;
+  users?: UserRoomDetails[] | null;
 }
 
 export interface IceServers {
@@ -112,6 +112,11 @@ export interface User {
   /** @format date-time */
   createdAt?: string;
   username?: string | null;
+}
+
+export interface UserRoomDetails {
+  user?: User;
+  isActive?: boolean;
 }
 
 export type QueryParamsType = Record<string | number, any>;

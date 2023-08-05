@@ -25,7 +25,7 @@ import {
   GetCurrentUserResponse,
 } from "../Models/ApiModels";
 
-const baseAddress =
+export const baseAddress =
   window.location.hostname === "localhost" ? "https://localhost:7072" : "https://monkfish-app-lzibp.ondigitalocean.app";
 const api = new Api({ baseUrl: baseAddress });
 

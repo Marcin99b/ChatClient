@@ -2,6 +2,7 @@ import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import Router from "./Router";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./Auth/AuthContext";
+import { SignalRProvider } from "./SignalR/SignalRContext";
 
 const theme = extendTheme({
   styles: {
@@ -19,7 +20,9 @@ export const App = () => {
     <ChakraProvider theme={theme}>
       <BrowserRouter>
         <AuthProvider>
-          <Router />
+          <SignalRProvider>
+            <Router />
+          </SignalRProvider>
         </AuthProvider>
       </BrowserRouter>
     </ChakraProvider>

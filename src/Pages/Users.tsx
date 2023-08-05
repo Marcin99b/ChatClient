@@ -1,10 +1,10 @@
 import { Button, ButtonGroup, Card, CardBody, CardFooter, Divider, Heading, Stack, Text } from "@chakra-ui/react";
 import { FC, useEffect, useRef, useState } from "react";
-import { useUsersApi } from "../Hooks/useApi";
-import { User } from "../Models/ApiModels";
+import { useRoomsApi, useUsersApi } from "../Hooks/useApi";
+import { UserRoomDetails } from "../Models/ApiModels";
 
 const Users: FC = () => {
-  const [users, setUsers] = useState<User[]>();
+  const [users, setUsers] = useState<UserRoomDetails[]>();
   const { getUsersList } = useUsersApi();
   const isMount = useRef(false);
 
@@ -16,14 +16,20 @@ const Users: FC = () => {
     getUsersList({}).then((x) => setUsers(x.users!));
   }, [getUsersList]);
 
+  const { proposeCall } = useRoomsApi();
+
+  const call = async (userId: string) => {
+    await proposeCall({ receivingUserId: userId });
+  };
+
   return (
     <Stack direction="row" flexWrap="wrap" spacing={10}>
       {users !== undefined &&
         users.map((x) => (
-          <Card width="md">
+          <Card width="md" key={x.user!.id}>
             <CardBody>
               <Stack mt="6" spacing="3">
-                <Heading size="md">{x.username}</Heading>
+                <Heading size="md">{x.user!.username}</Heading>
                 <Text>Testowy opis</Text>
                 <Text color="blue.600" fontSize="2xl">
                   3zł/min
@@ -33,7 +39,7 @@ const Users: FC = () => {
             <Divider />
             <CardFooter>
               <ButtonGroup spacing="2">
-                <Button variant="solid" colorScheme="blue">
+                <Button variant="solid" colorScheme="blue" isDisabled={!x.isActive} onClick={() => call(x.user!.id!)}>
                   Zadzwoń
                 </Button>
               </ButtonGroup>
