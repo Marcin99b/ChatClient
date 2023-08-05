@@ -13,12 +13,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(doesHttpOnlyCookieExist(authTokenCookie));
 
   const signin = (callback: VoidFunction) => {
-    setIsLoggedIn(doesHttpOnlyCookieExist(authTokenCookie));
+    const result = doesHttpOnlyCookieExist(authTokenCookie);
+    if (result === false) {
+      //todo error handling
+      return;
+    }
+    setIsLoggedIn(result);
     callback();
   };
 
   const signout = (callback: VoidFunction) => {
-    setIsLoggedIn(doesHttpOnlyCookieExist(authTokenCookie));
+    const result = doesHttpOnlyCookieExist(authTokenCookie);
+    if (result === true) {
+      //todo error handling
+      return;
+    }
+    setIsLoggedIn(result);
     callback();
   };
 
