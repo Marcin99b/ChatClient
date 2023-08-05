@@ -1,6 +1,5 @@
 import { Box, Button, List, ListItem } from "@chakra-ui/react";
 import { FC } from "react";
-import { deleteRoom } from "../../Requests";
 
 export const RoomsList: FC<{
   baseAddress: string;
@@ -19,7 +18,7 @@ export const RoomsList: FC<{
           <Button
             colorScheme={"red"}
             onClick={async () => {
-              await deleteRoom(baseAddress, id);
+              //await deleteRoom(baseAddress, id);
               await refreshRooms();
             }}
           >

@@ -1,5 +1,4 @@
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { baseAddress } from "../Requests";
 import { useRef } from "react";
 
 export const useSignalR = () => {
@@ -10,7 +9,7 @@ export const useSignalR = () => {
       return;
     }
     const conn = new HubConnectionBuilder()
-      .withUrl(baseAddress! + "/chatHub")
+      .withUrl(""! + "/chatHub")
       .withAutomaticReconnect()
       .build();
 

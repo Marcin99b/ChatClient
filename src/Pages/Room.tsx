@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Tag, Box, Button, Text, Heading } from "@chakra-ui/react";
 import { RoomsList } from "../Components/RoomsList/RoomsList";
-import { baseAddress, getRoomIds } from "../Requests";
 import { createRoom, joinRoom } from "../WebRtc/RtcActions";
 import { useMedia } from "../Hooks/useMedia";
 import { useSignalR } from "../Hooks/useSignalR";
 import { useWebRtcConfiguration } from "../Hooks/useWebRtcConfiguration";
-import { useApi } from "../Hooks/useApi";
 
 const Room = () => {
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>();
@@ -23,8 +21,8 @@ const Room = () => {
   }, []);
 
   const refreshRooms = async () => {
-    const ids = await getRoomIds(baseAddress);
-    setRoomIds(ids);
+    //const ids = await getRoomIds(baseAddress);
+    //setRoomIds(ids);
   };
 
   const { openMedia, localStreamRef, remoteStreamRef, localAudioRef, remoteAudioRef } = useMedia();
@@ -41,7 +39,7 @@ const Room = () => {
     await prepareDependencies();
     await createRoom(
       configurationRef.current!,
-      baseAddress,
+      "",
       signalrConnectionRef.current!,
       localStreamRef,
       remoteStreamRef,
@@ -55,7 +53,7 @@ const Room = () => {
     await joinRoom(
       configurationRef.current!,
       tempRoomId,
-      baseAddress,
+      "",
       signalrConnectionRef.current!,
       localStreamRef,
       remoteStreamRef,
@@ -105,7 +103,7 @@ const Room = () => {
           </Box>
 
           {roomIds !== undefined && (
-            <RoomsList baseAddress={baseAddress} ids={roomIds} refreshRooms={refreshRooms} joinRoom={handleJoinRoom} />
+            <RoomsList baseAddress={""} ids={roomIds} refreshRooms={refreshRooms} joinRoom={handleJoinRoom} />
           )}
         </Box>
       </Box>

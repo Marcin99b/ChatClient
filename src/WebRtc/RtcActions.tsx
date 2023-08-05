@@ -1,5 +1,4 @@
 import { HubConnection } from "@microsoft/signalr";
-import { createOffer, getOffer, addAnswer, getRoomById } from "../Requests";
 import {
   setupStateHandling,
   setupAddIceCandidate,
@@ -22,6 +21,7 @@ export const createRoom = async (
   });
 
   const offer = await peerConnection!.createOffer();
+  /*
   const roomId = await createOffer(baseAddress!, {
     type: offer.type,
     sdp: offer.sdp,
@@ -37,6 +37,7 @@ export const createRoom = async (
 
   setupAnswerAddedToRoom(peerConnection, signalrConnection);
   setupCandidateAddedToRoom(peerConnection, signalrConnection);
+  */
 };
 
 export const joinRoom = async (
@@ -49,7 +50,7 @@ export const joinRoom = async (
   displayConnectionState: (state: RTCPeerConnectionState) => void
 ) => {
   const peerConnection = createConnection(configuration, displayConnectionState);
-
+  /*
   localStreamRef.current!.getTracks().forEach((track) => {
     peerConnection.addTrack(track, localStreamRef.current!);
   });
@@ -78,6 +79,7 @@ export const joinRoom = async (
   }
 
   setupCandidateAddedToRoom(peerConnection, signalrConnection);
+  */
 };
 
 const createConnection = (

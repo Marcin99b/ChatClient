@@ -23,7 +23,8 @@ import {
   SetAnswerResponse,
 } from "../Models/ApiModels";
 
-const baseAddress = "https://monkfish-app-lzibp.ondigitalocean.app";
+const baseAddress =
+  window.location.hostname === "localhost" ? "https://localhost:7072" : "https://monkfish-app-lzibp.ondigitalocean.app";
 const api = new Api({ baseUrl: baseAddress });
 
 const unpack = async <TOut,>(response: Promise<HttpResponse<TOut, any>>) => {
