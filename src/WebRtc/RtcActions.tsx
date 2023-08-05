@@ -1,11 +1,4 @@
-import { HubConnection } from "@microsoft/signalr";
-import {
-  setupStateHandling,
-  setupAddIceCandidate,
-  setupAnswerAddedToRoom,
-  setupCandidateAddedToRoom,
-} from "./RtcSetup";
-
+/*
 export const createRoom = async (
   configuration: RTCConfiguration,
   baseAddress: string,
@@ -20,8 +13,8 @@ export const createRoom = async (
     peerConnection.addTrack(track, localStreamRef.current!);
   });
 
-  const offer = await peerConnection!.createOffer();
-  /*
+  //const offer = await peerConnection!.createOffer();
+  
   const roomId = await createOffer(baseAddress!, {
     type: offer.type,
     sdp: offer.sdp,
@@ -37,7 +30,7 @@ export const createRoom = async (
 
   setupAnswerAddedToRoom(peerConnection, signalrConnection);
   setupCandidateAddedToRoom(peerConnection, signalrConnection);
-  */
+  
 };
 
 export const joinRoom = async (
@@ -49,7 +42,7 @@ export const joinRoom = async (
   remoteStreamRef: React.MutableRefObject<MediaStream | undefined>,
   displayConnectionState: (state: RTCPeerConnectionState) => void
 ) => {
-  const peerConnection = createConnection(configuration, displayConnectionState);
+  //const peerConnection = createConnection(configuration, displayConnectionState);
   /*
   localStreamRef.current!.getTracks().forEach((track) => {
     peerConnection.addTrack(track, localStreamRef.current!);
@@ -79,7 +72,7 @@ export const joinRoom = async (
   }
 
   setupCandidateAddedToRoom(peerConnection, signalrConnection);
-  */
+  
 };
 
 const createConnection = (
@@ -92,3 +85,4 @@ const createConnection = (
 
   return peerConnection;
 };
+*/
