@@ -28,6 +28,7 @@ const api = new Api({ baseUrl: baseAddress });
 
 const unpack = async <TOut,>(response: Promise<HttpResponse<TOut, any>>) => {
   const r = await response;
+  //todo error handling
   var data = (await r.json()) as TOut;
   return data;
 };
