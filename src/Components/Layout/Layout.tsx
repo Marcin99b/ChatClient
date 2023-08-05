@@ -4,7 +4,7 @@ import { Navbar } from "../Navbar/Navbar";
 import { Box } from "@chakra-ui/react";
 
 const Layout: FC = () => (
-  <Box display="flex" flexDirection="column" alignItems="center" width="100%">
+  <Box display="flex" flexDirection="column" alignItems="center" width="100%" padding={20}>
     <Navbar />
     <Outlet />
   </Box>

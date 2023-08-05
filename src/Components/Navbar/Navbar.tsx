@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 export const Navbar: FC = () => {
   const auth = useAuth();
   const navigate = useNavigate();
-  const logout = () => auth.signout(() => navigate("/"));
+  const logout = () => auth.refresh(() => navigate("/"));
   return (
     <Box padding={10}>
       <Stack spacing={5} direction="row">
@@ -26,7 +26,9 @@ export const Navbar: FC = () => {
           </Button>
         )}
         {auth.isLoggedIn === true && <Button onClick={logout}>Logout</Button>}
-        <Text color={auth.isLoggedIn ? "green" : "red"}>{auth.isLoggedIn ? "Logged in" : "Not logged in"}</Text>
+        <Text color={auth.isLoggedIn ? "green" : "red"}>
+          {auth.isLoggedIn ? `Logged in as ${auth.user?.username}` : "Not logged in"}
+        </Text>
       </Stack>
     </Box>
   );

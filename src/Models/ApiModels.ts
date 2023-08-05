@@ -39,6 +39,12 @@ export interface CreateRoomRequest {
 
 export type CreateRoomResponse = object;
 
+export type GetCurrentUserRequest = object;
+
+export interface GetCurrentUserResponse {
+  user?: User;
+}
+
 export interface GetIceServersRequest {
   /** @format uuid */
   roomId?: string;
@@ -161,7 +167,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
 
   private baseApiParams: RequestParams = {
-    credentials: "same-origin",
+    credentials: "include",
     headers: {},
     redirect: "follow",
     referrerPolicy: "no-referrer",
@@ -215,7 +221,7 @@ export class HttpClient<SecurityDataType = unknown> {
             ? property
             : typeof property === "object" && property !== null
             ? JSON.stringify(property)
-            : `${property}`
+            : `${property}`,
         );
         return formData;
       }, new FormData()),
@@ -419,6 +425,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     apiV10UsersGetUserCreate: (data: GetUserRequest, params: RequestParams = {}) =>
       this.request<GetUserResponse, any>({
         path: `/public/api/v1.0/Users/GetUser`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Users
+     * @name ApiV10UsersGetCurrentUserCreate
+     * @request POST:/public/api/v1.0/Users/GetCurrentUser
+     */
+    apiV10UsersGetCurrentUserCreate: (data: GetCurrentUserRequest, params: RequestParams = {}) =>
+      this.request<GetCurrentUserResponse, any>({
+        path: `/public/api/v1.0/Users/GetCurrentUser`,
         method: "POST",
         body: data,
         type: ContentType.Json,

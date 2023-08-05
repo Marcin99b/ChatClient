@@ -21,6 +21,8 @@ import {
   AddCandidateResponse,
   SetAnswerRequest,
   SetAnswerResponse,
+  GetCurrentUserRequest,
+  GetCurrentUserResponse,
 } from "../Models/ApiModels";
 
 const baseAddress =
@@ -62,7 +64,11 @@ export const useUsersApi = () => {
     return unpack(api.public.apiV10UsersGetUserCreate(request));
   };
 
-  return { register, login, getUsersList, getUser };
+  const getCurrentUser = (request: GetCurrentUserRequest): Promise<GetCurrentUserResponse> => {
+    return unpack(api.public.apiV10UsersGetCurrentUserCreate(request));
+  };
+
+  return { register, login, getUsersList, getUser, getCurrentUser };
 };
 
 export const useWebRtcApi = () => {

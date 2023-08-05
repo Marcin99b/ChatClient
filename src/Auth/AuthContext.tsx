@@ -1,51 +1,45 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useUsersApi } from "../Hooks/useApi";
+import { User } from "../Models/ApiModels";
 
 export interface AuthContextType {
+  user: User | undefined;
   isLoggedIn: boolean;
-  signin: (callback: VoidFunction) => void;
-  signout: (callback: VoidFunction) => void;
+  refresh: (callback: VoidFunction) => void;
 }
-const authTokenCookie = "__access-token";
-
 export const AuthContext = createContext<AuthContextType>(null!);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(doesHttpOnlyCookieExist(authTokenCookie));
+  const isMount = useRef(false);
 
-  const signin = (callback: VoidFunction) => {
-    const result = doesHttpOnlyCookieExist(authTokenCookie);
-    if (result === false) {
-      //todo error handling
+  const [user, setUser] = useState<User>();
+  const isLoggedIn = user !== undefined;
+
+  const { getCurrentUser } = useUsersApi();
+
+  useEffect(() => {
+    if (isMount.current) {
       return;
     }
-    setIsLoggedIn(result);
+    isMount.current = true;
+    getCurrentUser({})
+      .then((x) => setUser(x.user))
+      .catch(() => setUser(undefined));
+  }, [getCurrentUser, user]);
+
+  const refresh = (callback: VoidFunction) => {
+    getCurrentUser({})
+      .then((x) => setUser(x.user))
+      .catch(() => setUser(undefined));
+
     callback();
   };
 
-  const signout = (callback: VoidFunction) => {
-    const result = doesHttpOnlyCookieExist(authTokenCookie);
-    if (result === true) {
-      //todo error handling
-      return;
-    }
-    setIsLoggedIn(result);
-    callback();
-  };
-
-  const value = { isLoggedIn, signin, signout };
+  const value = { user: user, isLoggedIn, refresh };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   return useContext(AuthContext);
-}
-
-function doesHttpOnlyCookieExist(cookiename: string) {
-  var d = new Date();
-  d.setTime(d.getTime() + 1000);
-  var expires = "expires=" + d.toUTCString();
-
-  document.cookie = cookiename + "=new_value;path=/;" + expires;
-  return document.cookie.indexOf(cookiename + "=") === -1;
 }

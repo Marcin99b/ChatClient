@@ -15,7 +15,7 @@ const Login: FC = () => {
       return;
     }
     await login({ username: username });
-    auth.signin(() => navigate("/"));
+    auth.refresh(() => navigate("/"));
   };
   return (
     <Box>
