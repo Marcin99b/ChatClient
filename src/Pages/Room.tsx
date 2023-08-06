@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Room } from "../Models/ApiModels";
+import { Candidate, Room } from "../Models/ApiModels";
 import { useRoomsApi, useWebRtcApi } from "../Hooks/useApi";
 import { useMedia } from "../Hooks/useMedia";
 import { useAuth } from "../Auth/AuthContext";
@@ -117,11 +117,24 @@ const RoomPage = () => {
     */
   }, [role, signalR.roomConfiguredByCaller]);
 
+  const waitingCandidatesQueue = useRef<Candidate[]>([]);
+
   useEffect(() => {
     if (signalR.candidateAddedToRoom === undefined) {
       return;
     }
     const { candidate } = signalR.candidateAddedToRoom;
+    if (rtcConnection.current?.remoteDescription === null || rtcConnection.current?.remoteDescription === undefined) {
+      waitingCandidatesQueue.current.push(candidate);
+      return;
+    }
+    if (waitingCandidatesQueue.current.length > 0) {
+      for (const item of waitingCandidatesQueue.current) {
+        const c = new RTCIceCandidate(item as any);
+        rtcConnection.current!.addIceCandidate(c).then(() => console.log("added remote candidate from queue"));
+        waitingCandidatesQueue.current = waitingCandidatesQueue.current.filter((x) => x.candidate !== item.candidate);
+      }
+    }
     const c = new RTCIceCandidate(candidate as any);
     rtcConnection.current!.addIceCandidate(c).then(() => console.log("added remote candidate"));
   }, [role, signalR.candidateAddedToRoom]);
