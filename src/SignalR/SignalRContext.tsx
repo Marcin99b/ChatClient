@@ -10,12 +10,12 @@ export interface SignalRContextType {
   callPropositionAccepted: { createdRoomId: string } | undefined;
   roomConfiguredByReceiver: { rtcRoom: WebRtcRoom } | undefined;
   roomConfiguredByCaller: { rtcRoom: WebRtcRoom } | undefined;
-  answerCandidateAddedToRoom: { candidate: Candidate } | undefined;
+  candidateAddedToRoom: { candidate: Candidate } | undefined;
   clearWaitingForCallAccept: () => void;
   clearCallPropositionAccepted: () => void;
   clearRoomConfiguredByReceiver: () => void;
   clearRoomConfiguredByCaller: () => void;
-  clearAnswerCandidateAddedToRoom: () => void;
+  clearcandidateAddedToRoom: () => void;
 }
 export const SignalRContext = createContext<SignalRContextType>(null!);
 
@@ -28,7 +28,7 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
   const [callPropositionAccepted, setCallPropositionAccepted] = useState<{ createdRoomId: string }>();
   const [roomConfiguredByReceiver, setRoomConfiguredByReceiver] = useState<{ rtcRoom: WebRtcRoom }>();
   const [roomConfiguredByCaller, setRoomConfiguredByCaller] = useState<{ rtcRoom: WebRtcRoom }>();
-  const [answerCandidateAddedToRoom, setAnswerCandidateAddedToRoom] = useState<{ candidate: Candidate }>();
+  const [candidateAddedToRoom, setCandidateAddedToRoom] = useState<{ candidate: Candidate }>();
 
   const clearWaitingForCallAccept = () => {
     setWaitingForCallAccept(undefined);
@@ -42,8 +42,8 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
   const clearRoomConfiguredByCaller = () => {
     setRoomConfiguredByCaller(undefined);
   };
-  const clearAnswerCandidateAddedToRoom = () => {
-    setAnswerCandidateAddedToRoom(undefined);
+  const clearcandidateAddedToRoom = () => {
+    setCandidateAddedToRoom(undefined);
   };
 
   useEffect(() => {
@@ -83,9 +83,9 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
         console.log("RoomConfiguredByCaller");
         setRoomConfiguredByReceiver({ rtcRoom });
       });
-      hub.current.on("AnswerCandidateAddedToRoom", (candidate: Candidate) => {
-        console.log("AnswerCandidateAddedToRoom");
-        setAnswerCandidateAddedToRoom({ candidate });
+      hub.current.on("CandidateAddedToRoom", (candidate: Candidate) => {
+        console.log("CandidateAddedToRoom");
+        setCandidateAddedToRoom({ candidate });
       });
     });
   }, [auth.isLoggedIn]);
@@ -108,13 +108,13 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
     callPropositionAccepted,
     roomConfiguredByReceiver,
     roomConfiguredByCaller,
-    answerCandidateAddedToRoom,
+    candidateAddedToRoom,
 
     clearWaitingForCallAccept,
     clearCallPropositionAccepted,
     clearRoomConfiguredByReceiver,
     clearRoomConfiguredByCaller,
-    clearAnswerCandidateAddedToRoom,
+    clearcandidateAddedToRoom,
   };
 
   return <SignalRContext.Provider value={value}>{children}</SignalRContext.Provider>;

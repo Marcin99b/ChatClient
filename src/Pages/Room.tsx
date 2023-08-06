@@ -108,12 +108,23 @@ const RoomPage = () => {
     const rtcSessionDescription = new RTCSessionDescription(rtcRoom.answer as any);
     rtcConnection.current!.setRemoteDescription(rtcSessionDescription);
 
+    /*
     const candidates = rtcRoom.answerCandidates!.map((x: any) => x.data);
     for (const candidate of candidates) {
       const c = new RTCIceCandidate(candidate);
       rtcConnection.current!.addIceCandidate(c);
     }
+    */
   }, [role, signalR.roomConfiguredByCaller]);
+
+  useEffect(() => {
+    if (signalR.candidateAddedToRoom === undefined) {
+      return;
+    }
+    const { candidate } = signalR.candidateAddedToRoom;
+    const c = new RTCIceCandidate(candidate as any);
+    rtcConnection.current!.addIceCandidate(c).then(() => console.log("added remote candidate"));
+  }, [role, signalR.candidateAddedToRoom]);
 
   return (
     <Box>
