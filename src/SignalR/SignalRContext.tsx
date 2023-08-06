@@ -47,14 +47,15 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
   }, [auth.isLoggedIn]);
 
   useEffect(() => {
-    if (auth.isLoggedIn) {
+    if (auth.isLoggedIn && auth.isChecked) {
       return;
     }
     if (hub.current === undefined) {
       return;
     }
     hub.current.stop();
-  }, [auth.isLoggedIn]);
+    console.log("Stopped connection");
+  }, [auth.isChecked, auth.isLoggedIn]);
 
   const value = { hub: hub.current };
 
