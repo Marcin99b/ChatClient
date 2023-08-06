@@ -54,7 +54,7 @@ const Router: FC = () => {
           }
         />
         <Route
-          path="/room/:id"
+          path="/room/:roomId"
           element={
             <Suspense>
               <AuthChecker requireAuth={true}>

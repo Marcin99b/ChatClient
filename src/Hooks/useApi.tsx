@@ -23,6 +23,12 @@ import {
   SetAnswerResponse,
   GetCurrentUserRequest,
   GetCurrentUserResponse,
+  GetRoomRequest,
+  GetRoomResponse,
+  NotifyCallerAboutRoomConfiguredRequest,
+  NotifyCallerAboutRoomConfiguredResponse,
+  NotifyReceiverAboutRoomConfiguredRequest,
+  NotifyReceiverAboutRoomConfiguredResponse,
 } from "../Models/ApiModels";
 
 export const baseAddress =
@@ -44,7 +50,11 @@ export const useRoomsApi = () => {
     return unpack(api.public.apiV10RoomsAcceptCallCreate(request));
   };
 
-  return { proposeCall, acceptCall };
+  const getRoom = (request: GetRoomRequest): Promise<GetRoomResponse> => {
+    return unpack(api.public.apiV10RoomsGetRoomCreate(request));
+  };
+
+  return { proposeCall, acceptCall, getRoom };
 };
 
 export const useUsersApi = () => {
@@ -88,5 +98,17 @@ export const useWebRtcApi = () => {
     return unpack(api.public.apiV10WebRtcSetAnswerCreate(request));
   };
 
-  return { getIceServers, createRoom, addCandidate, setAnswer };
+  const notifyCaller = (
+    request: NotifyCallerAboutRoomConfiguredRequest
+  ): Promise<NotifyCallerAboutRoomConfiguredResponse> => {
+    return unpack(api.public.apiV10WebRtcNotifyCallerAboutRoomConfiguredCreate(request));
+  };
+
+  const notifyReceiver = (
+    request: NotifyReceiverAboutRoomConfiguredRequest
+  ): Promise<NotifyReceiverAboutRoomConfiguredResponse> => {
+    return unpack(api.public.apiV10WebRtcNotifyReceiverAboutRoomConfiguredCreate(request));
+  };
+
+  return { getIceServers, createRoom, addCandidate, setAnswer, notifyCaller, notifyReceiver };
 };

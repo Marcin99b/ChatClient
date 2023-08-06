@@ -2,11 +2,15 @@ import { Button, ButtonGroup, Card, CardBody, CardFooter, Divider, Heading, Stac
 import { FC, useEffect, useRef, useState } from "react";
 import { useRoomsApi, useUsersApi } from "../Hooks/useApi";
 import { UserRoomDetails } from "../Models/ApiModels";
+import { useSignalR } from "../SignalR/SignalRContext";
+import { useNavigate } from "react-router-dom";
 
 const Users: FC = () => {
   const [users, setUsers] = useState<UserRoomDetails[]>();
   const { getUsersList } = useUsersApi();
   const isMount = useRef(false);
+  const signalR = useSignalR();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isMount.current) {
@@ -21,6 +25,14 @@ const Users: FC = () => {
   const call = async (userId: string) => {
     await proposeCall({ receivingUserId: userId });
   };
+
+  useEffect(() => {
+    if (signalR.callPropositionAccepted === undefined) {
+      return;
+    }
+    navigate(`/room/${signalR.callPropositionAccepted.createdRoomId}`);
+    signalR.clearCallPropositionAccepted();
+  }, [navigate, signalR, signalR.callPropositionAccepted]);
 
   return (
     <Stack direction="row" flexWrap="wrap" spacing={10}>

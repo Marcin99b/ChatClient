@@ -28,8 +28,11 @@ export const ReceivingCalls = () => {
       setCallingUser(undefined);
       return;
     }
+    if (callingUser !== undefined) {
+      return;
+    }
     getUser({ userId: signalR.waitingForCallAccept.callingUser }).then((x) => setCallingUser(x.user!));
-  }, [getUser, signalR.waitingForCallAccept]);
+  }, [callingUser, getUser, signalR.waitingForCallAccept]);
 
   useEffect(() => {
     if (callingUser === undefined) {

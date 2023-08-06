@@ -20,6 +20,8 @@ export interface AcceptCallResponse {
 }
 
 export interface AddCandidateRequest {
+  /** @format uuid */
+  webRtcRoomId?: string;
   candidate?: Candidate;
 }
 
@@ -34,10 +36,14 @@ export interface Candidate {
 }
 
 export interface CreateRoomRequest {
+  /** @format uuid */
+  roomId?: string;
   offer?: SdpData;
 }
 
-export type CreateRoomResponse = object;
+export interface CreateRoomResponse {
+  rtcRoom?: WebRtcRoom;
+}
 
 export type GetCurrentUserRequest = object;
 
@@ -52,6 +58,15 @@ export interface GetIceServersRequest {
 
 export interface GetIceServersResponse {
   iceServers?: IceServers[] | null;
+}
+
+export interface GetRoomRequest {
+  /** @format uuid */
+  roomId?: string;
+}
+
+export interface GetRoomResponse {
+  room?: Room;
 }
 
 export interface GetUserRequest {
@@ -82,6 +97,20 @@ export interface LoginRequest {
 
 export type LoginResponse = object;
 
+export interface NotifyCallerAboutRoomConfiguredRequest {
+  /** @format uuid */
+  roomId?: string;
+}
+
+export type NotifyCallerAboutRoomConfiguredResponse = object;
+
+export interface NotifyReceiverAboutRoomConfiguredRequest {
+  /** @format uuid */
+  roomId?: string;
+}
+
+export type NotifyReceiverAboutRoomConfiguredResponse = object;
+
 export interface ProposeCallRequest {
   /** @format uuid */
   receivingUserId?: string;
@@ -95,12 +124,25 @@ export interface RegisterRequest {
 
 export type RegisterResponse = object;
 
+export interface Room {
+  /** @format uuid */
+  id?: string;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format uuid */
+  callingUserId?: string;
+  /** @format uuid */
+  receivingUserId?: string;
+}
+
 export interface SdpData {
   sdp?: string | null;
   type?: string | null;
 }
 
 export interface SetAnswerRequest {
+  /** @format uuid */
+  webRtcRoomId?: string;
   answer?: SdpData;
 }
 
@@ -117,6 +159,19 @@ export interface User {
 export interface UserRoomDetails {
   user?: User;
   isActive?: boolean;
+}
+
+export interface WebRtcRoom {
+  /** @format uuid */
+  id?: string;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format uuid */
+  roomId?: string;
+  offer?: SdpData;
+  offerCandidates?: Candidate[] | null;
+  answerCandidates?: Candidate[] | null;
+  answer?: SdpData;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -372,6 +427,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * No description
      *
+     * @tags Rooms
+     * @name ApiV10RoomsGetRoomCreate
+     * @request POST:/public/api/v1.0/Rooms/GetRoom
+     */
+    apiV10RoomsGetRoomCreate: (data: GetRoomRequest, params: RequestParams = {}) =>
+      this.request<GetRoomResponse, any>({
+        path: `/public/api/v1.0/Rooms/GetRoom`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags Users
      * @name ApiV10UsersRegisterCreate
      * @request POST:/public/api/v1.0/Users/Register
@@ -481,6 +553,46 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     apiV10WebRtcCreateRoomCreate: (data: CreateRoomRequest, params: RequestParams = {}) =>
       this.request<CreateRoomResponse, any>({
         path: `/public/api/v1.0/WebRtc/CreateRoom`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags WebRtc
+     * @name ApiV10WebRtcNotifyCallerAboutRoomConfiguredCreate
+     * @request POST:/public/api/v1.0/WebRtc/NotifyCallerAboutRoomConfigured
+     */
+    apiV10WebRtcNotifyCallerAboutRoomConfiguredCreate: (
+      data: NotifyCallerAboutRoomConfiguredRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<NotifyCallerAboutRoomConfiguredResponse, any>({
+        path: `/public/api/v1.0/WebRtc/NotifyCallerAboutRoomConfigured`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags WebRtc
+     * @name ApiV10WebRtcNotifyReceiverAboutRoomConfiguredCreate
+     * @request POST:/public/api/v1.0/WebRtc/NotifyReceiverAboutRoomConfigured
+     */
+    apiV10WebRtcNotifyReceiverAboutRoomConfiguredCreate: (
+      data: NotifyReceiverAboutRoomConfiguredRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<NotifyReceiverAboutRoomConfiguredResponse, any>({
+        path: `/public/api/v1.0/WebRtc/NotifyReceiverAboutRoomConfigured`,
         method: "POST",
         body: data,
         type: ContentType.Json,
