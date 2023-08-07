@@ -75,13 +75,9 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
         console.log("RoomConfiguredByReceiver");
         setRoomConfiguredByReceiver({ rtcRoom });
       });
-      hub.current.on("RoomConfiguredByReceiver", (rtcRoom: WebRtcRoom) => {
-        console.log("RoomConfiguredByReceiver");
-        setRoomConfiguredByReceiver({ rtcRoom });
-      });
       hub.current.on("RoomConfiguredByCaller", (rtcRoom: WebRtcRoom) => {
         console.log("RoomConfiguredByCaller");
-        setRoomConfiguredByReceiver({ rtcRoom });
+        setRoomConfiguredByCaller({ rtcRoom });
       });
       hub.current.on("CandidateAddedToRoom", (candidate: Candidate) => {
         console.log("CandidateAddedToRoom");

@@ -1,4 +1,5 @@
 import { Candidate } from "../Models/ApiModels";
+import { setupStateHandling } from "../WebRtc/RtcSetup";
 import { useWebRtcApi } from "./useApi";
 
 export const useRtc = () => {
@@ -9,7 +10,9 @@ export const useRtc = () => {
       if (!event.candidate) {
         return;
       }
-      await rtcApi.addCandidate({ candidate: event.candidate.toJSON() as Candidate, webRtcRoomId: rtcRoomId });
+      const c = event.candidate.toJSON() as Candidate;
+      console.log("Sending candidate", { candidate: event.candidate.toJSON(), mappedTo: c });
+      await rtcApi.addCandidate({ candidate: c, webRtcRoomId: rtcRoomId });
     });
   };
 
@@ -17,6 +20,8 @@ export const useRtc = () => {
     const iceServers = (await rtcApi.getIceServers({ roomId: roomId })).iceServers! as RTCIceServer[];
     const configuration: RTCConfiguration = { iceServers: iceServers };
     const peerConnection = new RTCPeerConnection(configuration);
+
+    setupStateHandling(peerConnection);
 
     localStream.getTracks().forEach((track) => {
       peerConnection.addTrack(track, localStream);

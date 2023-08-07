@@ -13,6 +13,7 @@ const RoomPage = () => {
   const { roomId } = useParams();
   const [room, setRoom] = useState<Room>();
   const isMount = useRef(false);
+  const isInvokedRoomConfiguredByReceiver = useRef(false);
   const { getRoom } = useRoomsApi();
   const rtcApi = useWebRtcApi();
   const { openMedia, localStreamRef, remoteStreamRef, localAudioRef, remoteAudioRef } = useMedia();
@@ -30,58 +31,89 @@ const RoomPage = () => {
     isMount.current = true;
 
     getRoom({ roomId }).then((x) => {
+      const roleName: "caller" | "receiver" = x.room!.callingUserId === user?.id ? "caller" : "receiver";
+      if (roleName !== "receiver") {
+        return;
+      }
       setRoom(x.room!);
       openMedia().then(() => {
-        console.log({ room, myId: user?.id });
-        const roleName: "caller" | "receiver" = x.room!.callingUserId === user?.id ? "caller" : "receiver";
+        console.log({ room: x.room!, me: user?.id });
         setRole(roleName);
-        if (roleName === "receiver") {
-          rtc.getConnection(x.room!.id!, localStreamRef.current!).then((peerConnection) => {
-            rtc.sendOfferAndCandidates(peerConnection, x.room!.id!).then(() => {
-              peerConnection.addEventListener("track", (event) => {
-                event.streams[0].getTracks().forEach((track) => remoteStreamRef.current!.addTrack(track));
-              });
-              rtcConnection.current = peerConnection;
-              rtcApi.notifyCaller({ roomId: roomId }).then(() => console.log("Caller notified"));
-            });
-          });
-        } else if (roleName === "caller") {
-          if (signalR.roomConfiguredByReceiver === undefined) {
-            return;
-          }
-          console.log("Gathering data from receiver as caller");
-          const { rtcRoom } = signalR.roomConfiguredByReceiver;
-          console.log({ rtcRoom });
-          rtc.getConnection(x.room!.id!, localStreamRef.current!).then((peerConnection) => {
-            rtc.sendIceCandidates(peerConnection, rtcRoom.id!);
+        rtc.getConnection(x.room!.id!, localStreamRef.current!).then((peerConnection) => {
+          rtc.sendOfferAndCandidates(peerConnection, x.room!.id!).then(() => {
             peerConnection.addEventListener("track", (event) => {
               event.streams[0].getTracks().forEach((track) => remoteStreamRef.current!.addTrack(track));
             });
-            const offer = rtcRoom.offer;
-            peerConnection.setRemoteDescription(new RTCSessionDescription(offer as any)).then(() => {
-              peerConnection.createAnswer().then((answer) => {
-                peerConnection.setLocalDescription(answer).then(() => {
-                  rtcApi
-                    .setAnswer({
-                      webRtcRoomId: rtcRoom.id,
-                      answer: {
-                        type: answer.type,
-                        sdp: answer.sdp,
-                      },
-                    })
-                    .then(() => {
-                      const candidates = rtcRoom.offerCandidates!.map((x: any) => x.data);
-                      for (const candidate of candidates) {
-                        const c = new RTCIceCandidate(candidate);
-                        peerConnection.addIceCandidate(c);
-                      }
-                      rtcApi.notifyReceiver({ roomId: roomId }).then(() => console.log("Receiver notified"));
-                    });
-                });
+            rtcConnection.current = peerConnection;
+            peerConnection.addEventListener("icegatheringstatechange", () => {
+              console.log("icegatheringstatechange" + peerConnection.iceGatheringState);
+              if (peerConnection.iceGatheringState === "complete") {
+                rtcApi.notifyCaller({ roomId: x.room!.id! }).then(() => console.log("Caller notified"));
+              }
+            });
+          });
+        });
+      });
+    });
+  }, [getRoom, localStreamRef, openMedia, remoteStreamRef, room, roomId, rtc, rtcApi, user?.id]);
+
+  useEffect(() => {
+    if (
+      isInvokedRoomConfiguredByReceiver.current ||
+      signalR.roomConfiguredByReceiver === undefined ||
+      room !== undefined
+    ) {
+      return;
+    }
+    const { rtcRoom } = signalR.roomConfiguredByReceiver;
+    getRoom({ roomId }).then((x) => {
+      setRoom(x.room!);
+      openMedia().then(() => {
+        console.log({ room: x.room!, me: user?.id });
+        const roleName: "caller" | "receiver" = x.room!.callingUserId === user?.id ? "caller" : "receiver";
+        if (roleName !== "caller") {
+          return;
+        }
+        setRole(roleName);
+
+        console.log("Gathering data from receiver as caller");
+
+        console.log({ rtcRoom });
+        rtc.getConnection(x.room!.id!, localStreamRef.current!).then((peerConnection) => {
+          rtc.sendIceCandidates(peerConnection, rtcRoom.id!);
+          peerConnection.addEventListener("track", (event) => {
+            event.streams[0].getTracks().forEach((track) => remoteStreamRef.current!.addTrack(track));
+          });
+          const offer = rtcRoom.offer;
+          peerConnection.setRemoteDescription(new RTCSessionDescription(offer as any)).then(() => {
+            setRemoteDescriptionIsSet(true);
+            peerConnection.createAnswer().then((answer) => {
+              peerConnection.setLocalDescription(answer).then(() => {
+                rtcApi
+                  .setAnswer({
+                    webRtcRoomId: rtcRoom.id,
+                    answer: {
+                      type: answer.type,
+                      sdp: answer.sdp,
+                    },
+                  })
+                  .then(() => {
+                    const candidates = rtcRoom.offerCandidates!.map((x: any) => x.data);
+                    for (const item of candidates) {
+                      const c = new RTCIceCandidate({
+                        candidate: item.candidate!,
+                        sdpMid: item.sdpMid!,
+                        sdpMLineIndex: item.sdpMLineIndex!,
+                        usernameFragment: item.usernameFragment!,
+                      });
+                      peerConnection.addIceCandidate(c).then((x) => console.log("Candidate added"));
+                    }
+                    //rtcApi.notifyReceiver({ roomId: x.room!.id! }).then(() => console.log("Receiver notified"));
+                  });
               });
             });
           });
-        }
+        });
       });
     });
   }, [
@@ -98,7 +130,7 @@ const RoomPage = () => {
   ]);
 
   useEffect(() => {
-    if (signalR.roomConfiguredByCaller === undefined || role !== "receiver") {
+    if (signalR.roomConfiguredByCaller === undefined) {
       return;
     }
     console.log("Gathering data from caller as receiver");
@@ -107,37 +139,62 @@ const RoomPage = () => {
 
     const rtcSessionDescription = new RTCSessionDescription(rtcRoom.answer as any);
     rtcConnection.current!.setRemoteDescription(rtcSessionDescription);
+    setRemoteDescriptionIsSet(true);
 
-    /*
-    const candidates = rtcRoom.answerCandidates!.map((x: any) => x.data);
-    for (const candidate of candidates) {
-      const c = new RTCIceCandidate(candidate);
-      rtcConnection.current!.addIceCandidate(c);
+    const candidates = rtcRoom.answerCandidates!;
+    for (const item of candidates) {
+      const c = new RTCIceCandidate({
+        candidate: item.candidate!,
+        sdpMid: item.sdpMid!,
+        sdpMLineIndex: item.sdpMLineIndex!,
+        usernameFragment: item.usernameFragment!,
+      });
+      rtcConnection.current!.addIceCandidate(c).then((x) => console.log("Candidate added"));
     }
-    */
-  }, [role, signalR.roomConfiguredByCaller]);
+  }, [signalR.roomConfiguredByCaller]);
 
-  const waitingCandidatesQueue = useRef<Candidate[]>([]);
+  const candidatesToAddLater = useRef<Candidate[]>([]);
 
   useEffect(() => {
-    if (signalR.candidateAddedToRoom === undefined) {
+    if (signalR.candidateAddedToRoom === undefined || rtcConnection.current === undefined) {
       return;
     }
     const { candidate } = signalR.candidateAddedToRoom;
-    if (rtcConnection.current?.remoteDescription === null || rtcConnection.current?.remoteDescription === undefined) {
-      waitingCandidatesQueue.current.push(candidate);
+    if (rtcConnection.current.remoteDescription === null) {
+      candidatesToAddLater.current.push(candidate);
+      console.log("Added candidate to queue");
       return;
     }
-    if (waitingCandidatesQueue.current.length > 0) {
-      for (const item of waitingCandidatesQueue.current) {
-        const c = new RTCIceCandidate(item as any);
-        rtcConnection.current!.addIceCandidate(c).then(() => console.log("added remote candidate from queue"));
-        waitingCandidatesQueue.current = waitingCandidatesQueue.current.filter((x) => x.candidate !== item.candidate);
+
+    const c = new RTCIceCandidate({
+      candidate: candidate.candidate!,
+      sdpMid: candidate.sdpMid!,
+      sdpMLineIndex: candidate.sdpMLineIndex!,
+      usernameFragment: candidate.usernameFragment!,
+    });
+    rtcConnection.current.addIceCandidate(c).then(() => console.log("added remote candidate"));
+  }, [role, signalR.candidateAddedToRoom, rtcConnection]);
+
+  const [remoteDescriptionIsSet, setRemoteDescriptionIsSet] = useState(false);
+  useEffect(() => {
+    if (remoteDescriptionIsSet === false) {
+      return;
+    }
+    console.log(`${candidatesToAddLater.current.length} candidates on queue`);
+    if (candidatesToAddLater.current.length > 0) {
+      const list = [...candidatesToAddLater.current];
+      for (const item of list) {
+        const c = new RTCIceCandidate({
+          candidate: item.candidate!,
+          sdpMid: item.sdpMid!,
+          sdpMLineIndex: item.sdpMLineIndex!,
+          usernameFragment: item.usernameFragment!,
+        });
+        rtcConnection.current!.addIceCandidate(c).then(() => console.log("added remote candidate. from queue"));
+        candidatesToAddLater.current = candidatesToAddLater.current.filter((x) => x.candidate !== item.candidate);
       }
     }
-    const c = new RTCIceCandidate(candidate as any);
-    rtcConnection.current!.addIceCandidate(c).then(() => console.log("added remote candidate"));
-  }, [role, signalR.candidateAddedToRoom]);
+  }, [remoteDescriptionIsSet]);
 
   return (
     <Box>
@@ -145,7 +202,6 @@ const RoomPage = () => {
       <audio ref={remoteAudioRef}></audio>
       <Stack>
         <Text>Room {roomId}</Text>
-        <Text>You are {role}</Text>
         <Text>You are {role}</Text>
       </Stack>
     </Box>
