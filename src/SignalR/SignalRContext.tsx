@@ -80,7 +80,7 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
         setRoomConfiguredByCaller({ rtcRoom });
       });
       hub.current.on("CandidateAddedToRoom", (candidate: Candidate) => {
-        console.log("CandidateAddedToRoom");
+        //console.log("CandidateAddedToRoom");
         setCandidateAddedToRoom({ candidate });
       });
     });

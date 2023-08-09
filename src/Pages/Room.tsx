@@ -85,36 +85,37 @@ const RoomPage = () => {
             event.streams[0].getTracks().forEach((track) => remoteStreamRef.current!.addTrack(track));
           });
           const offer = rtcRoom.offer;
+          peerConnection.addEventListener("icegatheringstatechange", () => {
+            console.log("icegatheringstatechange" + peerConnection.iceGatheringState);
+            if (peerConnection.iceGatheringState === "complete") {
+              rtcApi.notifyReceiver({ roomId: x.room!.id! }).then(() => console.log("Receiver notified"));
+            }
+          });
           peerConnection.setRemoteDescription(new RTCSessionDescription(offer as any)).then(() => {
             peerConnection.createAnswer().then((answer) => {
               peerConnection.setLocalDescription(answer).then(() => {
                 rtcConnection.current = peerConnection;
-                peerConnection.addEventListener("icegatheringstatechange", () => {
-                  console.log("icegatheringstatechange" + peerConnection.iceGatheringState);
-                  if (peerConnection.iceGatheringState === "complete") {
-                    rtcApi
-                      .setAnswer({
-                        webRtcRoomId: rtcRoom.id,
-                        answer: {
-                          type: answer.type,
-                          sdp: answer.sdp,
-                        },
-                      })
-                      .then(() => {
-                        const candidates = rtcRoom.offerCandidates!.map((x: any) => x.data);
-                        for (const item of candidates) {
-                          const c = new RTCIceCandidate({
-                            candidate: item.candidate!,
-                            sdpMid: item.sdpMid!,
-                            sdpMLineIndex: item.sdpMLineIndex!,
-                            usernameFragment: item.usernameFragment!,
-                          });
-                          peerConnection.addIceCandidate(c).then((x) => console.log("Candidate added"));
-                        }
-                        //rtcApi.notifyReceiver({ roomId: x.room!.id! }).then(() => console.log("Receiver notified"));
+                rtcApi
+                  .setAnswer({
+                    webRtcRoomId: rtcRoom.id,
+                    answer: {
+                      type: answer.type,
+                      sdp: answer.sdp,
+                    },
+                  })
+                  .then(() => {
+                    const candidates = rtcRoom.offerCandidates!.map((x: any) => x.data);
+                    for (const item of candidates) {
+                      const c = new RTCIceCandidate({
+                        candidate: item.candidate!,
+                        sdpMid: item.sdpMid!,
+                        sdpMLineIndex: item.sdpMLineIndex!,
+                        usernameFragment: item.usernameFragment!,
                       });
-                  }
-                });
+                      peerConnection.addIceCandidate(c).then((x) => console.log("Candidate added"));
+                    }
+                    //rtcApi.notifyReceiver({ roomId: x.room!.id! }).then(() => console.log("Receiver notified"));
+                  });
               });
             });
           });
