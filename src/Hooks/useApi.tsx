@@ -57,7 +57,6 @@ const unpack = async <TOut,>(
 ) => {
   try {
     const r = await response;
-    console.log({ r });
     if (r.ok === false && errorHandler !== undefined) {
       errorHandler.onError(r.status);
     }
