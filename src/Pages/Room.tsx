@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Candidate, Room } from "../Models/ApiModels";
+import { Room } from "../Models/ApiModels";
 import { useRoomsApi, useWebRtcApi } from "../Hooks/useApi";
 import { useMedia } from "../Hooks/useMedia";
 import { useAuth } from "../Auth/AuthContext";
@@ -86,7 +86,6 @@ const RoomPage = () => {
           });
           const offer = rtcRoom.offer;
           peerConnection.setRemoteDescription(new RTCSessionDescription(offer as any)).then(() => {
-            setRemoteDescriptionIsSet(true);
             peerConnection.createAnswer().then((answer) => {
               peerConnection.setLocalDescription(answer).then(() => {
                 rtcApi
@@ -139,7 +138,6 @@ const RoomPage = () => {
 
     const rtcSessionDescription = new RTCSessionDescription(rtcRoom.answer as any);
     rtcConnection.current!.setRemoteDescription(rtcSessionDescription);
-    setRemoteDescriptionIsSet(true);
 
     const candidates = rtcRoom.answerCandidates!;
     for (const item of candidates) {
@@ -152,49 +150,6 @@ const RoomPage = () => {
       rtcConnection.current!.addIceCandidate(c).then((x) => console.log("Candidate added"));
     }
   }, [signalR.roomConfiguredByCaller]);
-
-  const candidatesToAddLater = useRef<Candidate[]>([]);
-
-  useEffect(() => {
-    if (signalR.candidateAddedToRoom === undefined || rtcConnection.current === undefined) {
-      return;
-    }
-    const { candidate } = signalR.candidateAddedToRoom;
-    if (rtcConnection.current.remoteDescription === null) {
-      candidatesToAddLater.current.push(candidate);
-      console.log("Added candidate to queue");
-      return;
-    }
-
-    const c = new RTCIceCandidate({
-      candidate: candidate.candidate!,
-      sdpMid: candidate.sdpMid!,
-      sdpMLineIndex: candidate.sdpMLineIndex!,
-      usernameFragment: candidate.usernameFragment!,
-    });
-    rtcConnection.current.addIceCandidate(c).then(() => console.log("added remote candidate"));
-  }, [role, signalR.candidateAddedToRoom, rtcConnection]);
-
-  const [remoteDescriptionIsSet, setRemoteDescriptionIsSet] = useState(false);
-  useEffect(() => {
-    if (remoteDescriptionIsSet === false) {
-      return;
-    }
-    console.log(`${candidatesToAddLater.current.length} candidates on queue`);
-    if (candidatesToAddLater.current.length > 0) {
-      const list = [...candidatesToAddLater.current];
-      for (const item of list) {
-        const c = new RTCIceCandidate({
-          candidate: item.candidate!,
-          sdpMid: item.sdpMid!,
-          sdpMLineIndex: item.sdpMLineIndex!,
-          usernameFragment: item.usernameFragment!,
-        });
-        rtcConnection.current!.addIceCandidate(c).then(() => console.log("added remote candidate. from queue"));
-        candidatesToAddLater.current = candidatesToAddLater.current.filter((x) => x.candidate !== item.candidate);
-      }
-    }
-  }, [remoteDescriptionIsSet]);
 
   return (
     <Box>
