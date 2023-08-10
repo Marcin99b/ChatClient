@@ -119,8 +119,7 @@ export const useRtc = () => {
       type: answer.type,
       sdp: answer.sdp,
     };
-    const candidates = rtcRoom.offerCandidates!.map((x: any) => x.data);
-    for (const item of candidates) {
+    for (const item of rtcRoom.offerCandidates!) {
       const c = new RTCIceCandidate({
         candidate: item.candidate!,
         sdpMid: item.sdpMid!,
