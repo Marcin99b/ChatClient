@@ -126,7 +126,7 @@ const RoomPage = () => {
       <audio ref={remoteAudioRef}></audio>
       <Stack spacing={5}>
         {secondUser !== undefined && <Text>Speaking with: {secondUser.username}</Text>}
-        {rtcConnection.current === undefined || rtcConnection.current.connectionState !== "connected" ? (
+        {rtc.connectionState === undefined || rtc.connectionState !== "connected" ? (
           <Spinner />
         ) : (
           <>

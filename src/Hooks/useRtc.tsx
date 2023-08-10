@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Candidate, SdpData, WebRtcRoom } from "../Models/ApiModels";
 import { useWebRtcApi } from "./useApi";
 
@@ -8,6 +8,8 @@ export const useRtc = () => {
   const offerToSend = useRef<SdpData>();
   const answerToSend = useRef<SdpData>();
   const candidatesToSend = useRef<Candidate[]>([]);
+
+  const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>();
 
   const setupStateHandling = (peerConnection: RTCPeerConnection) => {
     peerConnection.addEventListener("icegatheringstatechange", async () => {
@@ -35,6 +37,7 @@ export const useRtc = () => {
     peerConnection.addEventListener("connectionstatechange", () => {
       console.log("STATE CHANGED");
       console.log("connectionstatechange: " + peerConnection.connectionState);
+      setConnectionState(peerConnection.connectionState);
     });
 
     peerConnection.addEventListener("signalingstatechange", () => {
@@ -133,5 +136,6 @@ export const useRtc = () => {
   return {
     createRoom,
     joinRoom,
+    connectionState,
   };
 };
