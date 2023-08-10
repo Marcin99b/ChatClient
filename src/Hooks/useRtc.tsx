@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Candidate, SdpData, WebRtcRoom } from "../Models/ApiModels";
 import { useWebRtcApi } from "./useApi";
 
@@ -11,26 +11,43 @@ export const useRtc = () => {
 
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>();
 
+  const infoSent = useRef(false);
+
+  const sendInfoToServer = async () => {
+    if (infoSent.current) {
+      return;
+    }
+    infoSent.current = true;
+    if (offerToSend.current !== undefined) {
+      await rtcApi.createRoom({
+        roomId: roomIdRef.current!,
+        offer: offerToSend.current!,
+        candidates: candidatesToSend.current!,
+      });
+    } else if (answerToSend !== undefined) {
+      await rtcApi.setAnswer({
+        roomId: roomIdRef.current!,
+        answer: answerToSend.current!,
+        candidates: candidatesToSend.current!,
+      });
+    } else {
+      console.error("State is completed but data set incorrectly");
+    }
+  };
+
+  useEffect(() => {
+    if (candidatesToSend.current.length === 10) {
+      sendInfoToServer();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidatesToSend]);
+
   const setupStateHandling = (peerConnection: RTCPeerConnection) => {
     peerConnection.addEventListener("icegatheringstatechange", async () => {
       console.log("STATE CHANGED");
       console.log("icegatheringstatechange: " + peerConnection.iceGatheringState);
       if (peerConnection.iceGatheringState === "complete") {
-        if (offerToSend.current !== undefined) {
-          await rtcApi.createRoom({
-            roomId: roomIdRef.current!,
-            offer: offerToSend.current!,
-            candidates: candidatesToSend.current!,
-          });
-        } else if (answerToSend !== undefined) {
-          await rtcApi.setAnswer({
-            roomId: roomIdRef.current!,
-            answer: answerToSend.current!,
-            candidates: candidatesToSend.current!,
-          });
-        } else {
-          console.error("State is completed but data set incorrectly");
-        }
+        await sendInfoToServer();
       }
     });
 
@@ -111,7 +128,6 @@ export const useRtc = () => {
     peerConnection.addEventListener("track", (event) => {
       event.streams[0].getTracks().forEach((track) => remoteStream.addTrack(track));
     });
-
     const mappedOffer = rtcRoom.offer as RTCSessionDescriptionInit;
     console.log({ mappedOffer });
     await peerConnection.setRemoteDescription(new RTCSessionDescription(mappedOffer));
