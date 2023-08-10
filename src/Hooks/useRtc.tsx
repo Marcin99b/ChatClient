@@ -36,8 +36,8 @@ export const useRtc = () => {
   };
 
   useEffect(() => {
-    if (candidatesToSend.current.length === 10) {
-      sendInfoToServer();
+    if (infoSent.current === false && candidatesToSend.current.length === 10) {
+      sendInfoToServer().then(() => console.log("Sent server info based on length"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidatesToSend]);
@@ -46,8 +46,9 @@ export const useRtc = () => {
     peerConnection.addEventListener("icegatheringstatechange", async () => {
       console.log("STATE CHANGED");
       console.log("icegatheringstatechange: " + peerConnection.iceGatheringState);
-      if (peerConnection.iceGatheringState === "complete") {
+      if (infoSent.current === false && peerConnection.iceGatheringState === "complete") {
         await sendInfoToServer();
+        console.log("Sent server info based on state change");
       }
     });
 
