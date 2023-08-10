@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Room } from "../Models/ApiModels";
-import { useRoomsApi, useWebRtcApi } from "../Hooks/useApi";
+import { useRoomsApi } from "../Hooks/useApi";
 import { useMedia } from "../Hooks/useMedia";
 import { useAuth } from "../Auth/AuthContext";
 import { Box, Stack, Text } from "@chakra-ui/react";
@@ -15,7 +15,6 @@ const RoomPage = () => {
   const isMount = useRef(false);
   const isInvokedRoomConfiguredByReceiver = useRef(false);
   const { getRoom } = useRoomsApi();
-  const rtcApi = useWebRtcApi();
   const { openMedia, localStreamRef, remoteStreamRef, localAudioRef, remoteAudioRef } = useMedia();
   const [role, setRole] = useState<"caller" | "receiver" | undefined>();
   const rtcConnection = useRef<RTCPeerConnection>();
@@ -39,23 +38,13 @@ const RoomPage = () => {
       openMedia().then(() => {
         console.log({ room: x.room!, me: user?.id });
         setRole(roleName);
-        rtc.getConnection(x.room!.id!, localStreamRef.current!).then((peerConnection) => {
-          rtc.sendOfferAndCandidates(peerConnection, x.room!.id!).then(() => {
-            peerConnection.addEventListener("track", (event) => {
-              event.streams[0].getTracks().forEach((track) => remoteStreamRef.current!.addTrack(track));
-            });
-            rtcConnection.current = peerConnection;
-            peerConnection.addEventListener("icegatheringstatechange", () => {
-              console.log("icegatheringstatechange" + peerConnection.iceGatheringState);
-              if (peerConnection.iceGatheringState === "complete") {
-                rtcApi.notifyCaller({ roomId: x.room!.id! }).then(() => console.log("Caller notified"));
-              }
-            });
-          });
+        rtc.createRoom(x.room!.id!, localStreamRef.current!, remoteStreamRef.current!).then((peerConnection) => {
+          console.log("create room finished");
+          rtcConnection.current = peerConnection;
         });
       });
     });
-  }, [getRoom, localStreamRef, openMedia, remoteStreamRef, room, roomId, rtc, rtcApi, user?.id]);
+  }, [getRoom, localStreamRef, openMedia, remoteStreamRef, room, roomId, rtc, user?.id]);
 
   useEffect(() => {
     if (
@@ -75,50 +64,11 @@ const RoomPage = () => {
           return;
         }
         setRole(roleName);
-
         console.log("Gathering data from receiver as caller");
-
         console.log({ rtcRoom });
-        rtc.getConnection(x.room!.id!, localStreamRef.current!).then((peerConnection) => {
-          rtc.sendIceCandidates(peerConnection, rtcRoom.id!);
-          peerConnection.addEventListener("track", (event) => {
-            event.streams[0].getTracks().forEach((track) => remoteStreamRef.current!.addTrack(track));
-          });
-          const offer = rtcRoom.offer;
-          peerConnection.addEventListener("icegatheringstatechange", () => {
-            console.log("icegatheringstatechange" + peerConnection.iceGatheringState);
-            if (peerConnection.iceGatheringState === "complete") {
-              rtcApi.notifyReceiver({ roomId: x.room!.id! }).then(() => console.log("Receiver notified"));
-            }
-          });
-          peerConnection.setRemoteDescription(new RTCSessionDescription(offer as any)).then(() => {
-            peerConnection.createAnswer().then((answer) => {
-              peerConnection.setLocalDescription(answer).then(() => {
-                rtcConnection.current = peerConnection;
-                rtcApi
-                  .setAnswer({
-                    webRtcRoomId: rtcRoom.id,
-                    answer: {
-                      type: answer.type,
-                      sdp: answer.sdp,
-                    },
-                  })
-                  .then(() => {
-                    const candidates = rtcRoom.offerCandidates!.map((x: any) => x.data);
-                    for (const item of candidates) {
-                      const c = new RTCIceCandidate({
-                        candidate: item.candidate!,
-                        sdpMid: item.sdpMid!,
-                        sdpMLineIndex: item.sdpMLineIndex!,
-                        usernameFragment: item.usernameFragment!,
-                      });
-                      peerConnection.addIceCandidate(c).then((x) => console.log("Candidate added"));
-                    }
-                    //rtcApi.notifyReceiver({ roomId: x.room!.id! }).then(() => console.log("Receiver notified"));
-                  });
-              });
-            });
-          });
+        rtc.joinRoom(x.room!.id!, rtcRoom, localStreamRef.current!, remoteStreamRef.current!).then((peerConnection) => {
+          console.log("join room finished");
+          rtcConnection.current = peerConnection;
         });
       });
     });
@@ -130,7 +80,6 @@ const RoomPage = () => {
     room,
     roomId,
     rtc,
-    rtcApi,
     signalR.roomConfiguredByReceiver,
     user?.id,
   ]);
@@ -154,7 +103,7 @@ const RoomPage = () => {
         sdpMLineIndex: item.sdpMLineIndex!,
         usernameFragment: item.usernameFragment!,
       });
-      rtcConnection.current!.addIceCandidate(c).then((x) => console.log("Candidate added"));
+      rtcConnection.current!.addIceCandidate(c).then((x) => console.log("Remote candidate added"));
     }
   }, [signalR.roomConfiguredByCaller]);
 

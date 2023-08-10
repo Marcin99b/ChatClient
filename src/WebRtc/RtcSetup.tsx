@@ -1,27 +1,5 @@
 import { HubConnection } from "@microsoft/signalr";
 
-export const setupStateHandling = (peerConnection: RTCPeerConnection) => {
-  peerConnection.addEventListener("icegatheringstatechange", () => {
-    console.log("STATE CHANGED");
-    console.log("icegatheringstatechange: " + peerConnection.iceGatheringState);
-  });
-
-  peerConnection.addEventListener("connectionstatechange", () => {
-    console.log("STATE CHANGED");
-    console.log("connectionstatechange: " + peerConnection.connectionState);
-  });
-
-  peerConnection.addEventListener("signalingstatechange", () => {
-    console.log("STATE CHANGED");
-    console.log("signalingstatechange: " + peerConnection.signalingState);
-  });
-
-  peerConnection.addEventListener("iceconnectionstatechange ", () => {
-    console.log("STATE CHANGED");
-    console.log("iceconnectionstatechange: " + peerConnection.iceConnectionState);
-  });
-};
-
 export const setupAddIceCandidate = (
   baseAddress: string,
   roomId: string,
