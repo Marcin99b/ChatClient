@@ -95,7 +95,9 @@ const RoomPage = () => {
     const { rtcRoom } = signalR.roomConfiguredByCaller;
     console.log({ rtcRoom });
 
-    const rtcSessionDescription = new RTCSessionDescription(rtcRoom.answer as any);
+    const mappedAnswer = rtcRoom.answer as RTCSessionDescriptionInit;
+    console.log({ mappedAnswer });
+    const rtcSessionDescription = new RTCSessionDescription(mappedAnswer);
     rtcConnection.current!.setRemoteDescription(rtcSessionDescription);
 
     const candidates = rtcRoom.answerCandidates!;

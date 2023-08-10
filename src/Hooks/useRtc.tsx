@@ -73,12 +73,12 @@ export const useRtc = () => {
   };
 
   const generateOfferAndCandidates = async (peerConnection: RTCPeerConnection, roomId: string): Promise<void> => {
+    generateIceCandidates(peerConnection);
     const offer = await peerConnection.createOffer();
     offerToSend.current = {
       type: offer.type,
       sdp: offer.sdp,
     };
-    generateIceCandidates(peerConnection);
     await peerConnection.setLocalDescription(offer);
   };
 
@@ -108,7 +108,11 @@ export const useRtc = () => {
     peerConnection.addEventListener("track", (event) => {
       event.streams[0].getTracks().forEach((track) => remoteStream.addTrack(track));
     });
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(rtcRoom.offer as any));
+
+    const mappedOffer = rtcRoom.offer as RTCSessionDescriptionInit;
+    console.log({ mappedOffer });
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(mappedOffer));
+
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     answerToSend.current = {
