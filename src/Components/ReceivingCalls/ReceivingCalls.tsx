@@ -54,13 +54,6 @@ export const ReceivingCalls = () => {
 
   return (
     <>
-      <Button
-        onClick={() => {
-          onOpen();
-        }}
-      >
-        Open Modal
-      </Button>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px) hue-rotate(90deg)" />
         <ModalOverlay />

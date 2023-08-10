@@ -121,7 +121,7 @@ const RoomPage = () => {
   }, [signalR.roomConfiguredByCaller]);
 
   return (
-    <Box>
+    <Box margin={5}>
       <audio ref={localAudioRef} muted></audio>
       <audio ref={remoteAudioRef}></audio>
       <Stack spacing={5}>
