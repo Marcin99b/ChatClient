@@ -1,24 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Room } from "../Models/ApiModels";
-import { useRoomsApi } from "../Hooks/useApi";
+import { Room, User } from "../Models/ApiModels";
+import { useRoomsApi, useUsersApi } from "../Hooks/useApi";
 import { useMedia } from "../Hooks/useMedia";
 import { useAuth } from "../Auth/AuthContext";
-import { Box, Stack, Text } from "@chakra-ui/react";
+import { Box, Spinner, Stack, Text } from "@chakra-ui/react";
 import { useSignalR } from "../SignalR/SignalRContext";
 import { useRtc } from "../Hooks/useRtc";
 
 const RoomPage = () => {
   const { user } = useAuth();
+  const [secondUser, setSecondUser] = useState<User>();
   const { roomId } = useParams();
   const [room, setRoom] = useState<Room>();
   const isMount = useRef(false);
   const isInvokedRoomConfiguredByReceiver = useRef(false);
   const { getRoom } = useRoomsApi();
+  const { getUser } = useUsersApi();
   const { openMedia, localStreamRef, remoteStreamRef, localAudioRef, remoteAudioRef } = useMedia();
   const [role, setRole] = useState<"caller" | "receiver" | undefined>();
   const rtcConnection = useRef<RTCPeerConnection>();
   const signalR = useSignalR();
+
+  useEffect(() => {
+    if (room !== undefined && secondUser === undefined) {
+      const id = room.callingUserId === user!.id ? room.receivingUserId : room.callingUserId;
+      getUser({ userId: id }).then((u) => setSecondUser(u.user!));
+    }
+  }, [getUser, room, secondUser, user]);
 
   const rtc = useRtc();
 
@@ -115,9 +124,16 @@ const RoomPage = () => {
     <Box>
       <audio ref={localAudioRef} muted></audio>
       <audio ref={remoteAudioRef}></audio>
-      <Stack>
-        <Text>Room {roomId}</Text>
-        <Text>You are {role}</Text>
+      <Stack spacing={5}>
+        {secondUser !== undefined && <Text>Speaking with: {secondUser.username}</Text>}
+        {rtcConnection.current === undefined || rtcConnection.current.connectionState !== "connected" ? (
+          <Spinner />
+        ) : (
+          <>
+            <Text>Room {roomId}</Text>
+            <Text>You are {role}</Text>
+          </>
+        )}
       </Stack>
     </Box>
   );
