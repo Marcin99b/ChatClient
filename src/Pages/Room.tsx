@@ -41,10 +41,11 @@ const RoomPage = () => {
         rtc.createRoom(x.room!.id!, localStreamRef.current!, remoteStreamRef.current!).then((peerConnection) => {
           console.log("create room finished");
           rtcConnection.current = peerConnection;
+          signalR.clearRoomConfiguredByCaller();
         });
       });
     });
-  }, [getRoom, localStreamRef, openMedia, remoteStreamRef, room, roomId, rtc, user?.id]);
+  }, [getRoom, localStreamRef, openMedia, remoteStreamRef, room, roomId, rtc, signalR, user?.id]);
 
   useEffect(() => {
     if (
@@ -69,6 +70,7 @@ const RoomPage = () => {
         rtc.joinRoom(x.room!.id!, rtcRoom, localStreamRef.current!, remoteStreamRef.current!).then((peerConnection) => {
           console.log("join room finished");
           rtcConnection.current = peerConnection;
+          signalR.clearRoomConfiguredByReceiver();
         });
       });
     });
@@ -80,6 +82,7 @@ const RoomPage = () => {
     room,
     roomId,
     rtc,
+    signalR,
     signalR.roomConfiguredByReceiver,
     user?.id,
   ]);
