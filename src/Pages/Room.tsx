@@ -36,7 +36,6 @@ const RoomPage = () => {
       }
       setRoom(x.room!);
       openMedia().then(() => {
-        console.log({ room: x.room!, me: user?.id });
         setRole(roleName);
         rtc.createRoom(x.room!.id!, localStreamRef.current!, remoteStreamRef.current!).then((peerConnection) => {
           console.log("create room finished");
