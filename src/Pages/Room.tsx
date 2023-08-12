@@ -32,6 +32,12 @@ const RoomPage = () => {
 
   const rtc = useRtc();
 
+  useEffect(() => {
+    if (isRoomDeleted === true) {
+      rtcConnection.current?.close();
+    }
+  }, [isRoomDeleted]);
+
   //get room from DB
   useEffect(() => {
     if (isMount.current) {

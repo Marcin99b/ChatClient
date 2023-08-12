@@ -38,17 +38,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isLogout === true) {
       setUser(undefined);
       isChecked.current = true;
-      return;
+    } else {
+      getCurrentUser({})
+        .then((x) => {
+          setUser(x.user);
+          isChecked.current = true;
+        })
+        .catch(() => {
+          setUser(undefined);
+          isChecked.current = true;
+        });
     }
-    getCurrentUser({})
-      .then((x) => {
-        setUser(x.user);
-        isChecked.current = true;
-      })
-      .catch(() => {
-        setUser(undefined);
-        isChecked.current = true;
-      });
 
     callback();
   };

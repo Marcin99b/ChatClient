@@ -40,8 +40,6 @@ const useErrorHandler = () => {
     console.log("Error: " + code);
     if (code === 401) {
       navigate("/login");
-    } else {
-      navigate("/");
     }
   };
   return { onError };
@@ -61,7 +59,7 @@ const unpack = async <TOut,>(
     return r.data;
   } catch (error) {
     errorHandler?.onError(500);
-    return {};
+    throw error;
   }
 };
 

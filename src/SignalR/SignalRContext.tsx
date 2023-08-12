@@ -79,6 +79,10 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
         console.log("RoomConfiguredByCaller");
         setRoomConfiguredByCaller({ rtcRoom });
       });
+      hub.current.on("RoomDeleted", (roomId: string) => {
+        console.log("RoomDeleted");
+        setRoomDeleted({ roomId });
+      });
     });
   }, [auth.isLoggedIn]);
 
