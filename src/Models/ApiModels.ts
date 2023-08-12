@@ -84,11 +84,22 @@ export interface IceServers {
   credential?: string | null;
 }
 
+export interface LeaveRequest {
+  /** @format uuid */
+  roomId?: string;
+}
+
+export type LeaveResponse = object;
+
 export interface LoginRequest {
   username?: string | null;
 }
 
 export type LoginResponse = object;
+
+export type LogoutRequest = object;
+
+export type LogoutResponse = object;
 
 export interface ProposeCallRequest {
   /** @format uuid */
@@ -424,6 +435,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * No description
      *
+     * @tags Rooms
+     * @name ApiV10RoomsLeaveCreate
+     * @request POST:/public/api/v1.0/Rooms/Leave
+     */
+    apiV10RoomsLeaveCreate: (data: LeaveRequest, params: RequestParams = {}) =>
+      this.request<LeaveResponse, any>({
+        path: `/public/api/v1.0/Rooms/Leave`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags Users
      * @name ApiV10UsersRegisterCreate
      * @request POST:/public/api/v1.0/Users/Register
@@ -448,6 +476,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     apiV10UsersLoginCreate: (data: LoginRequest, params: RequestParams = {}) =>
       this.request<LoginResponse, any>({
         path: `/public/api/v1.0/Users/Login`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Users
+     * @name ApiV10UsersLogoutCreate
+     * @request POST:/public/api/v1.0/Users/Logout
+     */
+    apiV10UsersLogoutCreate: (data: LogoutRequest, params: RequestParams = {}) =>
+      this.request<LogoutResponse, any>({
+        path: `/public/api/v1.0/Users/Logout`,
         method: "POST",
         body: data,
         type: ContentType.Json,

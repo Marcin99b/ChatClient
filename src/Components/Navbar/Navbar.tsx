@@ -2,11 +2,16 @@ import { Box, Text, Button, Stack } from "@chakra-ui/react";
 import { FC } from "react";
 import { useAuth } from "../../Auth/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useUsersApi } from "../../Hooks/useApi";
 
 export const Navbar: FC = () => {
   const auth = useAuth();
+  const usersApi = useUsersApi();
   const navigate = useNavigate();
-  const logout = () => auth.refresh(() => navigate("/"));
+  const logout = async () => {
+    await usersApi.logout({});
+    auth.refresh(() => navigate("/login"), true);
+  };
   return (
     <Box padding={10}>
       <Stack spacing={5} direction="row">

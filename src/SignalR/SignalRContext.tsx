@@ -10,10 +10,12 @@ export interface SignalRContextType {
   callPropositionAccepted: { createdRoomId: string } | undefined;
   roomConfiguredByReceiver: { rtcRoom: WebRtcRoom } | undefined;
   roomConfiguredByCaller: { rtcRoom: WebRtcRoom } | undefined;
+  roomDeleted: { roomId: string } | undefined;
   clearWaitingForCallAccept: () => void;
   clearCallPropositionAccepted: () => void;
   clearRoomConfiguredByReceiver: () => void;
   clearRoomConfiguredByCaller: () => void;
+  clearRoomDeleted: () => void;
 }
 export const SignalRContext = createContext<SignalRContextType>(null!);
 
@@ -26,6 +28,7 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
   const [callPropositionAccepted, setCallPropositionAccepted] = useState<{ createdRoomId: string }>();
   const [roomConfiguredByReceiver, setRoomConfiguredByReceiver] = useState<{ rtcRoom: WebRtcRoom }>();
   const [roomConfiguredByCaller, setRoomConfiguredByCaller] = useState<{ rtcRoom: WebRtcRoom }>();
+  const [roomDeleted, setRoomDeleted] = useState<{ roomId: string }>();
 
   const clearWaitingForCallAccept = () => {
     setWaitingForCallAccept(undefined);
@@ -38,6 +41,9 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
   };
   const clearRoomConfiguredByCaller = () => {
     setRoomConfiguredByCaller(undefined);
+  };
+  const clearRoomDeleted = () => {
+    setRoomDeleted(undefined);
   };
 
   useEffect(() => {
@@ -94,11 +100,13 @@ export function SignalRProvider({ children }: { children: React.ReactNode }) {
     callPropositionAccepted,
     roomConfiguredByReceiver,
     roomConfiguredByCaller,
+    roomDeleted,
 
     clearWaitingForCallAccept,
     clearCallPropositionAccepted,
     clearRoomConfiguredByReceiver,
     clearRoomConfiguredByCaller,
+    clearRoomDeleted,
   };
 
   return <SignalRContext.Provider value={value}>{children}</SignalRContext.Provider>;

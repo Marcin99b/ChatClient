@@ -4,18 +4,19 @@ import { Room, User } from "../Models/ApiModels";
 import { useRoomsApi, useUsersApi } from "../Hooks/useApi";
 import { useMedia } from "../Hooks/useMedia";
 import { useAuth } from "../Auth/AuthContext";
-import { Box, Spinner, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, Spinner, Stack, Text } from "@chakra-ui/react";
 import { useSignalR } from "../SignalR/SignalRContext";
 import { useRtc } from "../Hooks/useRtc";
 
 const RoomPage = () => {
+  const [isRoomDeleted, setIsRoomDeleted] = useState(false);
   const { user } = useAuth();
   const [secondUser, setSecondUser] = useState<User>();
   const { roomId } = useParams();
   const [room, setRoom] = useState<Room>();
   const isMount = useRef(false);
   const isInvokedRoomConfiguredByReceiver = useRef(false);
-  const { getRoom } = useRoomsApi();
+  const { getRoom, leave } = useRoomsApi();
   const { getUser } = useUsersApi();
   const { openMedia, localStreamRef, remoteStreamRef, localAudioRef, remoteAudioRef } = useMedia();
   const [role, setRole] = useState<"caller" | "receiver" | undefined>();
@@ -38,21 +39,23 @@ const RoomPage = () => {
     }
     isMount.current = true;
 
-    getRoom({ roomId }).then((x) => {
-      const roleName: "caller" | "receiver" = x.room!.callingUserId === user?.id ? "caller" : "receiver";
-      if (roleName !== "receiver") {
-        return;
-      }
-      setRoom(x.room!);
-      openMedia().then(() => {
-        setRole(roleName);
-        rtc.createRoom(x.room!.id!, localStreamRef.current!, remoteStreamRef.current!).then((peerConnection) => {
-          console.log("create room finished");
-          rtcConnection.current = peerConnection;
-          signalR.clearRoomConfiguredByCaller();
+    getRoom({ roomId })
+      .then((x) => {
+        const roleName: "caller" | "receiver" = x.room!.callingUserId === user?.id ? "caller" : "receiver";
+        if (roleName !== "receiver") {
+          return;
+        }
+        setRoom(x.room!);
+        openMedia().then(() => {
+          setRole(roleName);
+          rtc.createRoom(x.room!.id!, localStreamRef.current!, remoteStreamRef.current!).then((peerConnection) => {
+            console.log("create room finished");
+            rtcConnection.current = peerConnection;
+            signalR.clearRoomConfiguredByCaller();
+          });
         });
-      });
-    });
+      })
+      .catch(() => setIsRoomDeleted(true));
   }, [getRoom, localStreamRef, openMedia, remoteStreamRef, room, roomId, rtc, signalR, user?.id]);
 
   useEffect(() => {
@@ -64,24 +67,28 @@ const RoomPage = () => {
       return;
     }
     const { rtcRoom } = signalR.roomConfiguredByReceiver;
-    getRoom({ roomId }).then((x) => {
-      setRoom(x.room!);
-      openMedia().then(() => {
-        console.log({ room: x.room!, me: user?.id });
-        const roleName: "caller" | "receiver" = x.room!.callingUserId === user?.id ? "caller" : "receiver";
-        if (roleName !== "caller") {
-          return;
-        }
-        setRole(roleName);
-        console.log("Gathering data from receiver as caller");
-        console.log({ rtcRoom });
-        rtc.joinRoom(x.room!.id!, rtcRoom, localStreamRef.current!, remoteStreamRef.current!).then((peerConnection) => {
-          console.log("join room finished");
-          rtcConnection.current = peerConnection;
-          signalR.clearRoomConfiguredByReceiver();
+    getRoom({ roomId })
+      .then((x) => {
+        setRoom(x.room!);
+        openMedia().then(() => {
+          console.log({ room: x.room!, me: user?.id });
+          const roleName: "caller" | "receiver" = x.room!.callingUserId === user?.id ? "caller" : "receiver";
+          if (roleName !== "caller") {
+            return;
+          }
+          setRole(roleName);
+          console.log("Gathering data from receiver as caller");
+          console.log({ rtcRoom });
+          rtc
+            .joinRoom(x.room!.id!, rtcRoom, localStreamRef.current!, remoteStreamRef.current!)
+            .then((peerConnection) => {
+              console.log("join room finished");
+              rtcConnection.current = peerConnection;
+              signalR.clearRoomConfiguredByReceiver();
+            });
         });
-      });
-    });
+      })
+      .catch(() => setIsRoomDeleted(true));
   }, [
     getRoom,
     localStreamRef,
@@ -120,21 +127,45 @@ const RoomPage = () => {
     }
   }, [signalR.roomConfiguredByCaller]);
 
+  useEffect(() => {
+    if (signalR.roomDeleted === undefined) {
+      return;
+    }
+    if (roomId === signalR.roomDeleted.roomId) {
+      setIsRoomDeleted(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signalR.roomDeleted]);
+
   return (
     <Box margin={5}>
-      <audio ref={localAudioRef} muted></audio>
-      <audio ref={remoteAudioRef}></audio>
-      <Stack spacing={5}>
-        {secondUser !== undefined && <Text>Speaking with: {secondUser.username}</Text>}
-        {rtc.connectionState === undefined || rtc.connectionState !== "connected" ? (
-          <Spinner />
-        ) : (
-          <>
-            <Text>Room {roomId}</Text>
-            <Text>You are {role}</Text>
-          </>
-        )}
-      </Stack>
+      {isRoomDeleted ? (
+        <Text>Koniec rozmowy</Text>
+      ) : (
+        <>
+          <audio ref={localAudioRef} muted></audio>
+          <audio ref={remoteAudioRef}></audio>
+          <Stack spacing={5}>
+            {secondUser !== undefined && <Text>Speaking with: {secondUser.username}</Text>}
+            {rtc.connectionState === undefined || rtc.connectionState !== "connected" || roomId === undefined ? (
+              <Spinner />
+            ) : (
+              <>
+                <Text>Room {roomId}</Text>
+                <Text>You are {role}</Text>
+                <Button
+                  colorScheme="red"
+                  onClick={() => {
+                    leave({ roomId: roomId }).then(() => setIsRoomDeleted(true));
+                  }}
+                >
+                  Leave
+                </Button>
+              </>
+            )}
+          </Stack>
+        </>
+      )}
     </Box>
   );
 };

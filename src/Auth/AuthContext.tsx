@@ -5,7 +5,7 @@ import { User } from "../Models/ApiModels";
 export interface AuthContextType {
   user: User | undefined;
   isLoggedIn: boolean;
-  refresh: (callback: VoidFunction) => void;
+  refresh: (callback: VoidFunction, isLogout?: boolean) => void;
   isChecked: React.MutableRefObject<boolean>;
 }
 export const AuthContext = createContext<AuthContextType>(null!);
@@ -34,7 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
   }, [getCurrentUser, user]);
 
-  const refresh = (callback: VoidFunction) => {
+  const refresh = (callback: VoidFunction, isLogout?: boolean) => {
+    if (isLogout === true) {
+      setUser(undefined);
+      isChecked.current = true;
+      return;
+    }
     getCurrentUser({})
       .then((x) => {
         setUser(x.user);

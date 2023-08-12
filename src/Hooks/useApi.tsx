@@ -24,6 +24,10 @@ import {
   GetCurrentUserResponse,
   GetRoomRequest,
   GetRoomResponse,
+  LeaveRequest,
+  LeaveResponse,
+  LogoutRequest,
+  LogoutResponse,
 } from "../Models/ApiModels";
 
 export const baseAddress =
@@ -75,7 +79,11 @@ export const useRoomsApi = () => {
     return unpack(api.public.apiV10RoomsGetRoomCreate(request), errorHandler);
   };
 
-  return { proposeCall, acceptCall, getRoom };
+  const leave = (request: LeaveRequest): Promise<LeaveResponse> => {
+    return unpack(api.public.apiV10RoomsLeaveCreate(request), errorHandler);
+  };
+
+  return { proposeCall, acceptCall, getRoom, leave };
 };
 
 export const useUsersApi = () => {
@@ -86,6 +94,10 @@ export const useUsersApi = () => {
 
   const login = (request: LoginRequest): Promise<LoginResponse> => {
     return unpack(api.public.apiV10UsersLoginCreate(request), errorHandler);
+  };
+
+  const logout = (request: LogoutRequest): Promise<LogoutResponse> => {
+    return unpack(api.public.apiV10UsersLogoutCreate(request), errorHandler);
   };
 
   const getUsersList = (request: GetUsersListRequest): Promise<GetUsersListResponse> => {
@@ -100,7 +112,7 @@ export const useUsersApi = () => {
     return unpack(api.public.apiV10UsersGetCurrentUserCreate(request));
   };
 
-  return { register, login, getUsersList, getUser, getCurrentUser };
+  return { register, login, logout, getUsersList, getUser, getCurrentUser };
 };
 
 export const useWebRtcApi = () => {
