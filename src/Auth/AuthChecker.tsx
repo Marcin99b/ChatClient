@@ -11,7 +11,7 @@ const AuthChecker: FC<AuthCheckerProps> = (props: AuthCheckerProps) => {
   const { requireAuth, children } = props;
   const auth = useAuth();
   if (requireAuth && !auth.isLoggedIn && auth.isChecked.current) {
-    return <Navigate to={"/"} />; //todo handle redirectTo
+    return <Navigate to={"/login"} />; //todo handle redirectTo
   }
   return children;
 };
